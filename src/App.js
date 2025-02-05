@@ -37,6 +37,7 @@ import { SCHOOL_NAME } from "config/schoolConfig";
 import DemandSlip from "pages/Reports/DemandSlip";
 import Transport from "pages/transport/Transport";
 import VehicleDetails from "pages/transport/VehicleDetails";
+import WebsiteConfig from "pages/WebsiteConfig/WebsiteConfigPage";
 
 const StudentProfilePictureUpdater = Loadable(
   lazy(() => import("pages/ProfileUpdater/StudentProfilePictureUpdater"))
@@ -149,25 +150,16 @@ function App() {
                   path="/schoolResults/print-results"
                   element={<PrintResult />}
                 />
-                <Route
-                  path="/print-id-cards"
-                  element={<IdCardGeneration />}
-                />
+                <Route path="/print-id-cards" element={<IdCardGeneration />} />
 
                 {/* Reports Routes */}
                 <Route
                   path="/reports/balance-sheet"
                   element={<BalanceSheet />}
                 />
-              
-                <Route
-                  path="/reports/due-report"
-                  element={<DueReport />}
-                />
-                <Route
-                  path="/reports/demand-slip"
-                  element={<DemandSlip />}
-                />
+
+                <Route path="/reports/due-report" element={<DueReport />} />
+                <Route path="/reports/demand-slip" element={<DemandSlip />} />
                 {"Transport"}
                 <Route
                   path="/transport/transport-location"
@@ -177,7 +169,6 @@ function App() {
                   path="/transport/vehicle-details"
                   element={<VehicleDetails />}
                 />
-              
               </Route>
               <Route
                 path="update-student-profile-picture"
