@@ -32,7 +32,6 @@ import { Link } from "react-router-dom";
 import { SCHOOL_CLASSES, SCHOOL_SECTIONS } from "../../config/schoolConfig";
 import { addstudent } from "store/reducers/studentSlice";
 
-
 function AddStudent() {
   const dispatch = useDispatch();
 
@@ -48,6 +47,7 @@ function AddStudent() {
   const [isAdmissionFeeEditable, setIsAdmissionFeeEditable] = useState(true);
   const [isTransportationFeeEditable, setIsTransportationFeeEditable] =
     useState(true);
+  const [transportData, setTransportData] = useState([]);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -82,6 +82,7 @@ function AddStudent() {
     city: "",
     state: "",
     postal_code: "",
+    vehileName:"",
     address: "",
     contact_number: "",
     alternate_number: "",
@@ -195,6 +196,24 @@ function AddStudent() {
       }
     }
   }, [formData.class]);
+
+  useEffect(() => {
+    const VehicleDetail = async () => {
+      const transportRef = db.collection("TRANSPORT").doc("vechile");
+      const vechileDetails = await transportRef.get();
+
+      if (vechileDetails.exists) {
+        const data = vechileDetails.data();
+        if (data) {
+          data.vehicle.forEach(() => {
+            setTransportData(data.vehicle);
+          });
+        }
+      }
+      console.log("data", transportData);
+    };
+    VehicleDetail();
+  }, []);
 
   return (
     <PageContainer>
@@ -447,6 +466,7 @@ function AddStudent() {
             <br />
             <br />
             <span className={Styles.inputSeperator}>Family Details</span>
+
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
                 <TextField
@@ -638,6 +658,34 @@ function AddStudent() {
                 />
               </Grid>
             </Grid>
+            <span className={Styles.inputSeperator}>Transport</span>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel id="demo-simple-select-label" required>
+                  Vehile
+                </InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  label="Vehicle"
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      vehicleName: e.target.value,
+                    }))
+                  }
+                  required
+                >
+                  {transportData.map((item) => {
+                    return (
+                      <MenuItem key={item.vehicleId} value={item.vehicleName}>
+                        {item.vehicleName}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+            </Grid>
             <span className={Styles.inputSeperator}>Fee Details</span>
             <Grid
               container
@@ -827,7 +875,6 @@ function AddStudent() {
             <br />
             <FormGroup>
               <FormControlLabel
-          
                 control={<Checkbox />}
                 label="I here by confirm that above details provided are correct and only used for official purpose."
               />
