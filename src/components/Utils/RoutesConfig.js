@@ -15,7 +15,8 @@ import {
   IconReportAnalytics,
   IconReport,
   IconServer,
-  IconBus
+  IconBus,
+  IconDatabaseCog,
 } from "@tabler/icons-react";
 import AddStudent from "../../pages/Users/AddStudent";
 import UnderConstruction from "../../pages/Extras/UnderConstruction";
@@ -33,7 +34,7 @@ import FeeReports from "pages/Reports/Reports";
 import MasterData from "pages/MasterData/MasterData";
 import Reports from "pages/Reports/Reports";
 import Transport from "pages/transport/Transport";
-
+import WebsiteConfig from "pages/WebsiteConfig/WebsiteConfigPage";
 
 export const routesConfig = [
   {
@@ -178,14 +179,14 @@ export const routesConfig = [
         to: "transport/transport-location",
         isCollapsable: false,
         isHeader: false,
-        Component: <Transport/>,
+        Component: <Transport />,
       },
       {
         title: "Vehicle Details",
         to: "transport/vehicle-details",
         isCollapsable: false,
         isHeader: false,
-        Component: <PrintResult/>,
+        Component: <PrintResult />,
       },
     ],
   },
@@ -210,14 +211,14 @@ export const routesConfig = [
         to: "schoolResults/update-results",
         isCollapsable: false,
         isHeader: false,
-        Component: <UpdateResults/>,
+        Component: <UpdateResults />,
       },
       {
         title: "Print Results",
         to: "schoolResults/print-results",
         isCollapsable: false,
         isHeader: false,
-        Component: <PrintResult/>,
+        Component: <PrintResult />,
       },
     ],
   },
@@ -260,6 +261,14 @@ export const routesConfig = [
     isCollapsable: false,
     isHeader: false,
     Component: MasterData,
+  },
+  {
+    title: "Website Config",
+    to: "/websiteconfig",
+    icon: IconDatabaseCog,
+    isCollapsable: false,
+    isHeader: false,
+    Component: WebsiteConfig,
   },
   {
     title: "Settings",
