@@ -192,7 +192,7 @@ const WebsiteContent = () => {
           </Grid>
 
           {formData.noticeBoard?.map((notice, index) => (
-            <Grid container spacing={2} key={index} sx={{ mt: 3 }}>
+            <Grid container spacing={2} key={index} sx={{ mt: 3, p: 3 }}>
               <Typography variant="h5" sx={{ mb: 3 }}>
                 {"Notice " + index + 1}
               </Typography>
@@ -292,7 +292,7 @@ const WebsiteContent = () => {
 
           {formData.aboutUs?.messages.map((message, index) => (
             <Grid container spacing={2} key={index} sx={{ mt: 5 }}>
-              <Typography variant="h5" sx={{ mb: 3 }}>
+              <Typography variant="h5" sx={{ mb: 3, p: 3 }}>
                 {"Message " + index + 1}
               </Typography>
               <Grid item xs={12}>
