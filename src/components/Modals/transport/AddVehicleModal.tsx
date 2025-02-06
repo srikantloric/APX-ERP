@@ -24,11 +24,11 @@ type TransportData = SerialNumber & {
   conductorName: string;
   registerNumber: string;
   totalSeat: string;
-   licenseDate: string;
+  licenseDate: string;
   rcDate: string;
 
   insuranceDate: string;
-  pollutionDate:string;
+  pollutionDate: string;
 };
 
 type AddPickupPointDialogProps = {
@@ -49,7 +49,7 @@ function AddVehicleModal(props: AddPickupPointDialogProps) {
 
     rcDate: "",
     insuranceDate: "",
-    pollutionDate:"",
+    pollutionDate: "",
   });
 
   const [formError, setFormError] = useState({
@@ -60,11 +60,10 @@ function AddVehicleModal(props: AddPickupPointDialogProps) {
     registerNumber: "",
     totalSeat: "",
     licenseDate: "",
-    
+
     rcDate: "",
     insuranceDate: "",
-    pollutionDate:"",
-    
+    pollutionDate: "",
   });
 
   const handleFormChange = (e: any) => {
@@ -95,7 +94,9 @@ function AddVehicleModal(props: AddPickupPointDialogProps) {
       licenseDate: formState.licenseDate ? "" : "Lincense sate is required",
       rcDate: formState.rcDate ? "" : "Rc Date is required",
       insuranceDate: formState.insuranceDate ? "" : "Insurance Date required",
-      pollutionDate:formState.pollutionDate?"":" Pollution Dateis required",
+      pollutionDate: formState.pollutionDate
+        ? ""
+        : " Pollution Dateis required",
     };
     setFormError(newFormError);
     error = Object.values(newFormError).some((err) => err !== "");
@@ -110,10 +111,9 @@ function AddVehicleModal(props: AddPickupPointDialogProps) {
         vehicleId,
         ...formState,
       };
-      const transportRef = db.collection("TRANSPORT").doc("vechile");
+      const transportRef = db.collection("TRANSPORT").doc("transportLocations");
       transportRef.update({
-        vehicle:
-          firebase.firestore.FieldValue.arrayUnion(transportDataForSave),
+        vehicle: firebase.firestore.FieldValue.arrayUnion(transportDataForSave),
       });
       setFormState({
         vehicleId: vehicleId,
@@ -125,7 +125,7 @@ function AddVehicleModal(props: AddPickupPointDialogProps) {
         licenseDate: "",
         rcDate: "",
         insuranceDate: "",
-        pollutionDate:"",
+        pollutionDate: "",
       });
       onClose();
       enqueueSnackbar("Vechicle Added Successfully", {

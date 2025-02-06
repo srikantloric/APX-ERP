@@ -47,7 +47,8 @@ function AddStudent() {
   const [isAdmissionFeeEditable, setIsAdmissionFeeEditable] = useState(true);
   const [isTransportationFeeEditable, setIsTransportationFeeEditable] =
     useState(true);
-  const [transportData, setTransportData] = useState([]);
+  const [transportDataLocation, setTransportDataLocation] = useState([]);
+  const [transportVehicle, settransportVehicle] = useState([]);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -82,7 +83,8 @@ function AddStudent() {
     city: "",
     state: "",
     postal_code: "",
-    vehileName:"",
+    vehileName: "",
+    pickupLocation: "",
     address: "",
     contact_number: "",
     alternate_number: "",
@@ -199,19 +201,33 @@ function AddStudent() {
 
   useEffect(() => {
     const VehicleDetail = async () => {
-      const transportRef = db.collection("TRANSPORT").doc("vechile");
-      const vechileDetails = await transportRef.get();
+      // const transportRef = db.collection("TRANSPORT").doc("vechile");
+      // const vechileDetails = await transportRef.get();
 
-      if (vechileDetails.exists) {
-        const data = vechileDetails.data();
+      // if (vechileDetails.exists) {
+      //   const data = vechileDetails.data();
+      //   if (data) {
+      //     data.vehicle.forEach(() => {
+      //       setTransportData(data.vehicle);
+      //     });
+      //   }
+      // }
+      // console.log("data", transportData);
+      const transportRef = db.collection("TRANSPORT").doc("transportLocations");
+      const doc = await transportRef.get();
+      if (doc.exists) {
+        const data = doc.data();
+        console.log(data);
         if (data) {
-          data.vehicle.forEach(() => {
-            setTransportData(data.vehicle);
-          });
+          setTransportDataLocation(data.locations);
+          settransportVehicle(data.vehicle);
+        } else {
+          setTransportDataLocation([]);
+          console.log("No such document!");
         }
       }
-      console.log("data", transportData);
     };
+    console.log("data", transportVehicle);
     VehicleDetail();
   }, []);
 
@@ -659,32 +675,65 @@ function AddStudent() {
               </Grid>
             </Grid>
             <span className={Styles.inputSeperator}>Transport</span>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel id="demo-simple-select-label" required>
-                  Vehile
-                </InputLabel>
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  label="Vehicle"
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      vehicleName: e.target.value,
-                    }))
-                  }
-                  required
-                >
-                  {transportData.map((item) => {
-                    return (
-                      <MenuItem key={item.vehicleId} value={item.vehicleName}>
-                        {item.vehicleName}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label" required>
+                    Vehile
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    label="Vehicle"
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        vehicleName: e.target.value,
+                      }))
+                    }
+                    required
+                  >
+                    {transportVehicle.map((item) => {
+                      return (
+                        <MenuItem key={item.vehicleId} value={item.vehicleName}>
+                          {item.vehicleName}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label" required>
+                    Pickup Location
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    label="Vehicle"
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        pickupLocation: e.target.value,
+                      }))
+                    }
+                    required
+                  >
+                    {transportDataLocation.map((item) => {
+                      return (
+                        <MenuItem
+                          key={item.serialNo}
+                          value={item.pickupPointName}
+                        >
+                          {item.pickupPointName}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
             <span className={Styles.inputSeperator}>Fee Details</span>
             <Grid
