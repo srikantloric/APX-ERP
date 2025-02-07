@@ -38,6 +38,7 @@ const WebsiteContent = () => {
     noticeContent: "",
     createdAt: "",
   });
+  const [editNoticeIndex, setEditNoticeIndex] = useState<number | null>(null);
   const [openMessageDialog, setOpenMessageDialog] = useState(false);
   const [newMessage, setNewMessage] = useState({
     messageTitle: "",
@@ -78,7 +79,10 @@ const WebsiteContent = () => {
           if (!temp[keys[i]]) temp[keys[i]] = {};
           temp = temp[keys[i]];
         }
-        temp[keys[keys.length - 1]] = value;
+        temp[keys[keys.length - 1]] =
+          keys[keys.length - 1] === "phoneNumbers"
+            ? value.split(",").map((num) => num.trim())
+            : value;
         return updatedData;
       });
     } else {
@@ -106,11 +110,16 @@ const WebsiteContent = () => {
   };
 
   const handleDialogOpen = () => {
+    setNewNotice({
+      noticeContent: "",
+      createdAt: new Date().toISOString().split("T")[0],
+    });
     setOpenDialog(true);
   };
 
   const handleDialogClose = () => {
     setOpenDialog(false);
+    setEditNoticeIndex(null);
   };
 
   const handleNewNoticeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,6 +138,40 @@ const WebsiteContent = () => {
       .doc("websiteConfig")
       .update({ noticeBoard: updatedNotices });
     handleDialogClose();
+  };
+
+  const handleEditNoticeDialogOpen = (index: number) => {
+    setEditNoticeIndex(index);
+    const notice = formData.noticeBoard?.[index];
+    setNewNotice(
+      notice
+        ? {
+            noticeContent: notice.noticeContent,
+            createdAt: new Date(notice.createdAt).toISOString().split("T")[0],
+          }
+        : {
+            noticeContent: "",
+            createdAt: new Date().toISOString().split("T")[0],
+          }
+    );
+    setOpenDialog(true);
+  };
+
+  const handleEditNotice = async () => {
+    if (editNoticeIndex !== null) {
+      const updatedNotices = formData.noticeBoard?.map((notice, index) =>
+        index === editNoticeIndex ? newNotice : notice
+      );
+      setFormData((prev) => ({
+        ...prev,
+        noticeBoard: updatedNotices,
+      }));
+      await db
+        .collection("WEBSITE_CONFIG")
+        .doc("websiteConfig")
+        .update({ noticeBoard: updatedNotices });
+      handleDialogClose();
+    }
   };
 
   const handleDeleteNotice = (index: number) => {
@@ -221,24 +264,25 @@ const WebsiteContent = () => {
 
   return (
     <>
+      <Typography variant="h4">Update School Info</Typography>
+      <Typography variant="caption">Update School Details</Typography>
+
       <Paper
         sx={{
           padding: "16px",
           color: "#000",
-          mb: 5,
+          my: 5,
         }}
       >
-        <Typography variant="h4" sx={{ mb: 7 }}>
-          Update School Info
-        </Typography>
-
         <form onSubmit={(e) => handleSubmit(e, "schoolInfo")}>
-          <Typography variant="h5" sx={{ mb: 5 }}>
-            School Info
-          </Typography>
-          <Grid container spacing={2}>
+          <Typography variant="h5">School Info</Typography>
+          <Typography variant="caption">School basic details</Typography>
+
+          <Grid container spacing={2} sx={{ mt: 3 }}>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1">School Name</Typography>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                School Name
+              </Typography>
               <TextField
                 label="School Name"
                 name="schoolName"
@@ -250,7 +294,9 @@ const WebsiteContent = () => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1">School Address</Typography>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                School Address
+              </Typography>
               <TextField
                 label="School Address"
                 name="schoolAddress"
@@ -262,7 +308,9 @@ const WebsiteContent = () => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1">Email</Typography>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Email
+              </Typography>
               <TextField
                 label="Email"
                 name="contactDetails.email"
@@ -274,11 +322,17 @@ const WebsiteContent = () => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1">Phone Numbers</Typography>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Phone Numbers
+              </Typography>
               <TextField
                 label="Phone Numbers"
                 name="contactDetails.phoneNumbers"
-                value={formData.contactDetails?.phoneNumbers.join(", ") || ""}
+                value={
+                  Array.isArray(formData.contactDetails?.phoneNumbers)
+                    ? formData?.contactDetails?.phoneNumbers?.join(", ")
+                    : ""
+                }
                 onChange={handleChange}
                 variant="outlined"
                 fullWidth
@@ -334,7 +388,9 @@ const WebsiteContent = () => {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <Typography variant="subtitle1">Latest News</Typography>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Latest News
+              </Typography>
               <TextField
                 label="Latest News"
                 name="latestNews"
@@ -345,8 +401,10 @@ const WebsiteContent = () => {
                 disabled={!editMode.noticeNews}
               />
             </Grid>
-            <Grid item xs={12}>
-              <TableContainer component={Paper}>
+            <Grid item xs={12} sx={{ mt: 5 }}>
+              <Typography variant="h6">Notices</Typography>
+              <Typography variant="caption">Notice For Notice Board</Typography>
+              <TableContainer component={Paper} sx={{ mt: 3 }}>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -359,12 +417,12 @@ const WebsiteContent = () => {
                     {formData.noticeBoard?.map((notice, index) => (
                       <TableRow key={index}>
                         <TableCell>{notice.noticeContent}</TableCell>
-                        <TableCell>{notice.createdAt.toString()}</TableCell>
+                        <TableCell>
+                          {new Date(notice.createdAt).toLocaleDateString()}
+                        </TableCell>
                         <TableCell>
                           <IconButton
-                            onClick={() =>
-                              handleEditMode(`noticeBoard.${index}`, true)
-                            }
+                            onClick={() => handleEditNoticeDialogOpen(index)}
                           >
                             <EditIcon color="primary" />
                           </IconButton>
@@ -421,7 +479,9 @@ const WebsiteContent = () => {
         </form>
 
         <Dialog open={openDialog} onClose={handleDialogClose}>
-          <DialogTitle>Add New Notice</DialogTitle>
+          <DialogTitle>
+            {editNoticeIndex !== null ? "Edit Notice" : "Add New Notice"}
+          </DialogTitle>
           <DialogContent>
             <TextField
               label="Notice Content"
@@ -432,21 +492,29 @@ const WebsiteContent = () => {
               fullWidth
               sx={{ mb: 2 }}
             />
-            <TextField
-              label="Date"
-              name="createdAt"
-              value={newNotice.createdAt}
-              onChange={handleNewNoticeChange}
-              variant="outlined"
-              fullWidth
-            />
+            {editNoticeIndex !== null && (
+              <TextField
+                label="Date"
+                name="createdAt"
+                type="date"
+                value={newNotice.createdAt}
+                onChange={handleNewNoticeChange}
+                variant="outlined"
+                fullWidth
+              />
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDialogClose} color="secondary">
               Cancel
             </Button>
-            <Button onClick={handleAddNotice} color="primary">
-              Add
+            <Button
+              onClick={
+                editNoticeIndex !== null ? handleEditNotice : handleAddNotice
+              }
+              color="primary"
+            >
+              {editNoticeIndex !== null ? "Save" : "Add"}
             </Button>
           </DialogActions>
         </Dialog>
@@ -500,12 +568,48 @@ const WebsiteContent = () => {
                 disabled={!editMode.aboutUs}
               />
             </Grid>
+            <Grid
+              container
+              spacing={2}
+              justifyContent="flex-end"
+              sx={{ mt: 3 }}
+            >
+              {editMode.aboutUs ? (
+                <>
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={() => handleEditMode("aboutUs", false)}
+                    >
+                      Cancel
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button variant="contained" color="primary" type="submit">
+                      Save
+                    </Button>
+                  </Grid>
+                </>
+              ) : (
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleEditMode("aboutUs", true)}
+                  >
+                    Edit
+                  </Button>
+                </Grid>
+              )}
+            </Grid>
+
             <Grid item xs={12} sx={{ mt: 5 }}>
-              <Typography variant="overline">Messages</Typography>
+              <Typography variant="h6">Messages</Typography>
               <Typography variant="caption">
                 Messages For About-us Page
               </Typography>
-              <TableContainer component={Paper}>
+              <TableContainer component={Paper} sx={{ mt: 3 }}>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -543,34 +647,6 @@ const WebsiteContent = () => {
             </Grid>
           </Grid>
           <Grid container spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
-            {editMode.aboutUs ? (
-              <>
-                <Grid item>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => handleEditMode("aboutUs", false)}
-                  >
-                    Cancel
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="contained" color="primary" type="submit">
-                    Save
-                  </Button>
-                </Grid>
-              </>
-            ) : (
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handleEditMode("aboutUs", true)}
-                >
-                  Edit
-                </Button>
-              </Grid>
-            )}
             <Grid item>
               <Button
                 variant="contained"
