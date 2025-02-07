@@ -4,11 +4,24 @@ import {
   Paper,
   TextField,
   Typography,
-  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { SchoolInfo } from "types/schoolInfo";
 import { db } from "../../firebase";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
 
 const WebsiteContent = () => {
   const [schoolInfo, setSchoolInfo] = useState<SchoolInfo | null>(null);
@@ -20,6 +33,19 @@ const WebsiteContent = () => {
     noticeNews: false,
     aboutUs: false,
   });
+  const [openDialog, setOpenDialog] = useState(false);
+  const [newNotice, setNewNotice] = useState({
+    noticeContent: "",
+    createdAt: "",
+  });
+  const [openMessageDialog, setOpenMessageDialog] = useState(false);
+  const [newMessage, setNewMessage] = useState({
+    messageTitle: "",
+    messageContent: "",
+    messageBy: "",
+    highlightedMessage: "",
+  });
+  const [editMessageIndex, setEditMessageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const getSchoolInfo = async () => {
@@ -79,301 +105,541 @@ const WebsiteContent = () => {
     }
   };
 
+  const handleDialogOpen = () => {
+    setOpenDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
+
+  const handleNewNoticeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewNotice((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddNotice = async () => {
+    const updatedNotices = [...(formData.noticeBoard || []), newNotice];
+    setFormData((prev) => ({
+      ...prev,
+      noticeBoard: updatedNotices,
+    }));
+    await db
+      .collection("WEBSITE_CONFIG")
+      .doc("websiteConfig")
+      .update({ noticeBoard: updatedNotices });
+    handleDialogClose();
+  };
+
+  const handleDeleteNotice = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      noticeBoard: prev.noticeBoard?.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleMessageDialogOpen = () => {
+    setOpenMessageDialog(true);
+  };
+
+  const handleMessageDialogClose = () => {
+    setOpenMessageDialog(false);
+    setEditMessageIndex(null);
+  };
+
+  const handleNewMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewMessage((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddMessage = async () => {
+    const updatedMessages = [...(formData.aboutUs?.messages || []), newMessage];
+    setFormData((prev) => ({
+      ...prev,
+      aboutUs: {
+        ...prev.aboutUs,
+        messages: updatedMessages,
+      },
+    }));
+    await db
+      .collection("WEBSITE_CONFIG")
+      .doc("websiteConfig")
+      .update({ "aboutUs.messages": updatedMessages });
+    handleMessageDialogClose();
+  };
+
+  const handleEditMessageDialogOpen = (index: number) => {
+    setEditMessageIndex(index);
+    setNewMessage(
+      formData.aboutUs?.messages[index] || {
+        messageTitle: "",
+        messageContent: "",
+        messageBy: "",
+        highlightedMessage: "",
+      }
+    );
+    setOpenMessageDialog(true);
+  };
+
+  const handleEditMessage = async () => {
+    if (editMessageIndex !== null) {
+      const updatedMessages = formData.aboutUs?.messages.map((message, index) =>
+        index === editMessageIndex ? newMessage : message
+      );
+      setFormData((prev) => ({
+        ...prev,
+        aboutUs: {
+          ...prev.aboutUs,
+          messages: updatedMessages,
+        },
+      }));
+      await db
+        .collection("WEBSITE_CONFIG")
+        .doc("websiteConfig")
+        .update({ "aboutUs.messages": updatedMessages });
+      handleMessageDialogClose();
+    }
+  };
+
+  const handleDeleteMessage = (index: number) => {
+    if (window.confirm("Are you sure you want to delete this message?")) {
+      const updatedMessages = formData.aboutUs?.messages.filter(
+        (_, i) => i !== index
+      );
+      setFormData((prev) => ({
+        ...prev,
+        aboutUs: {
+          ...prev.aboutUs,
+          messages: updatedMessages,
+        },
+      }));
+      db.collection("WEBSITE_CONFIG")
+        .doc("websiteConfig")
+        .update({ "aboutUs.messages": updatedMessages });
+    }
+  };
+
   return (
-    <Paper
-      sx={{
-        padding: "16px",
-        color: "#000",
-      }}
-    >
-      <Typography variant="h4" sx={{ mb: 7 }}>
-        Update School Info
-      </Typography>
-
-      <form onSubmit={(e) => handleSubmit(e, "schoolInfo")}>
-        <Typography variant="h5" sx={{ mb: 5 }}>
-          School Info
+    <>
+      <Paper
+        sx={{
+          padding: "16px",
+          color: "#000",
+          mb: 5,
+        }}
+      >
+        <Typography variant="h4" sx={{ mb: 7 }}>
+          Update School Info
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              label="School Name"
-              name="schoolName"
-              value={formData.schoolName || ""}
-              onChange={handleChange}
-              variant="outlined"
-              fullWidth
-              disabled={!editMode.schoolInfo}
-            />
+
+        <form onSubmit={(e) => handleSubmit(e, "schoolInfo")}>
+          <Typography variant="h5" sx={{ mb: 5 }}>
+            School Info
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1">School Name</Typography>
+              <TextField
+                label="School Name"
+                name="schoolName"
+                value={formData.schoolName || ""}
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                disabled={!editMode.schoolInfo}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1">School Address</Typography>
+              <TextField
+                label="School Address"
+                name="schoolAddress"
+                value={formData.schoolAddress || ""}
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                disabled={!editMode.schoolInfo}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1">Email</Typography>
+              <TextField
+                label="Email"
+                name="contactDetails.email"
+                value={formData.contactDetails?.email || ""}
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                disabled={!editMode.schoolInfo}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1">Phone Numbers</Typography>
+              <TextField
+                label="Phone Numbers"
+                name="contactDetails.phoneNumbers"
+                value={formData.contactDetails?.phoneNumbers.join(", ") || ""}
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                disabled={!editMode.schoolInfo}
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              label="School Address"
-              name="schoolAddress"
-              value={formData.schoolAddress || ""}
-              onChange={handleChange}
-              variant="outlined"
-              fullWidth
-              disabled={!editMode.schoolInfo}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              label="Email"
-              name="contactDetails.email"
-              value={formData.contactDetails?.email || ""}
-              onChange={handleChange}
-              variant="outlined"
-              fullWidth
-              disabled={!editMode.schoolInfo}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              label="Phone Numbers"
-              name="contactDetails.phoneNumbers"
-              value={formData.contactDetails?.phoneNumbers.join(", ") || ""}
-              onChange={handleChange}
-              variant="outlined"
-              fullWidth
-              disabled={!editMode.schoolInfo}
-            />
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
-          {editMode.schoolInfo ? (
-            <>
+          <Grid container spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
+            {editMode.schoolInfo ? (
+              <>
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => handleEditMode("schoolInfo", false)}
+                  >
+                    Cancel
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button variant="contained" color="primary" type="submit">
+                    Save
+                  </Button>
+                </Grid>
+              </>
+            ) : (
               <Grid item>
                 <Button
                   variant="contained"
-                  color="secondary"
-                  onClick={() => handleEditMode("schoolInfo", false)}
+                  color="primary"
+                  onClick={() => handleEditMode("schoolInfo", true)}
                 >
-                  Cancel
+                  Edit
                 </Button>
               </Grid>
+            )}
+          </Grid>
+        </form>
+      </Paper>
+
+      {/* <Divider sx={{ my: 2 }} /> */}
+
+      <Paper
+        sx={{
+          padding: "16px",
+          color: "#000",
+          mb: 5,
+        }}
+      >
+        <form onSubmit={(e) => handleSubmit(e, "noticeNews")}>
+          <Typography variant="h5" sx={{ mb: 5 }}>
+            Notice & News
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1">Latest News</Typography>
+              <TextField
+                label="Latest News"
+                name="latestNews"
+                value={formData.latestNews || ""}
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                disabled={!editMode.noticeNews}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Notice Content</TableCell>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {formData.noticeBoard?.map((notice, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{notice.noticeContent}</TableCell>
+                        <TableCell>{notice.createdAt.toString()}</TableCell>
+                        <TableCell>
+                          <IconButton
+                            onClick={() =>
+                              handleEditMode(`noticeBoard.${index}`, true)
+                            }
+                          >
+                            <EditIcon color="primary" />
+                          </IconButton>
+                          <IconButton onClick={() => handleDeleteNotice(index)}>
+                            <DeleteIcon color="error" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+          </Grid>
+          <Grid container spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
+            {editMode.noticeNews ? (
+              <>
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => handleEditMode("noticeNews", false)}
+                  >
+                    Cancel
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button variant="contained" color="primary" type="submit">
+                    Save
+                  </Button>
+                </Grid>
+              </>
+            ) : (
               <Grid item>
-                <Button variant="contained" color="primary" type="submit">
-                  Save
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleEditMode("noticeNews", true)}
+                >
+                  Edit
                 </Button>
               </Grid>
-            </>
-          ) : (
+            )}
             <Grid item>
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => handleEditMode("schoolInfo", true)}
+                onClick={handleDialogOpen}
               >
-                Edit
+                <AddIcon /> Add Notice
               </Button>
             </Grid>
-          )}
-        </Grid>
-      </form>
+          </Grid>
+        </form>
 
-      <Divider sx={{ my: 2 }} />
-
-      <form onSubmit={(e) => handleSubmit(e, "noticeNews")}>
-        <Typography variant="h5" sx={{ mb: 5 }}>
-          Notice & News
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
+        <Dialog open={openDialog} onClose={handleDialogClose}>
+          <DialogTitle>Add New Notice</DialogTitle>
+          <DialogContent>
             <TextField
-              label="Latest News"
-              name="latestNews"
-              value={formData.latestNews || ""}
-              onChange={handleChange}
+              label="Notice Content"
+              name="noticeContent"
+              value={newNotice.noticeContent}
+              onChange={handleNewNoticeChange}
               variant="outlined"
               fullWidth
-              disabled={!editMode.noticeNews}
+              sx={{ mb: 2 }}
             />
-          </Grid>
+            <TextField
+              label="Date"
+              name="createdAt"
+              value={newNotice.createdAt}
+              onChange={handleNewNoticeChange}
+              variant="outlined"
+              fullWidth
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDialogClose} color="secondary">
+              Cancel
+            </Button>
+            <Button onClick={handleAddNotice} color="primary">
+              Add
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Paper>
 
-          {formData.noticeBoard?.map((notice, index) => (
-            <Grid container spacing={2} key={index} sx={{ mt: 3, p: 3 }}>
-              <Typography variant="h5" sx={{ mb: 3 }}>
-                {"Notice " + index + 1}
+      {/* <Divider sx={{ my: 2 }} /> */}
+
+      <Paper
+        sx={{
+          padding: "16px",
+          color: "#000",
+          mb: 5,
+        }}
+      >
+        <form onSubmit={(e) => handleSubmit(e, "aboutUs")}>
+          <Typography variant="h5" sx={{ mb: 5 }}>
+            About Us Page
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Inspirational Quote
               </Typography>
-              <Grid item xs={12}>
-                <TextField
-                  label={`Notice ${index + 1}`}
-                  name={`noticeBoard.${index}.noticeContent`}
-                  value={notice.noticeContent}
-                  onChange={handleChange}
-                  variant="outlined"
-                  fullWidth
-                  disabled={!editMode.noticeNews}
-                />
-              </Grid>
-              <Grid item xs={12} sx={{ mt: 1 }}>
-                <TextField
-                  label={`Date ${index + 1}`}
-                  name={`noticeBoard.${index}.createdAt`}
-                  value={notice.createdAt.toString()}
-                  onChange={handleChange}
-                  variant="outlined"
-                  fullWidth
-                  disabled={!editMode.noticeNews}
-                />
-              </Grid>
+              <TextField
+                label="Inspirational Quote"
+                name="aboutUs.inspirationalQuote.inspirationalQuoteMessage"
+                value={
+                  formData.aboutUs?.inspirationalQuote
+                    .inspirationalQuoteMessage || ""
+                }
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                disabled={!editMode.aboutUs}
+              />
             </Grid>
-          ))}
-        </Grid>
-
-        <Grid container spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
-          {editMode.noticeNews ? (
-            <>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => handleEditMode("noticeNews", false)}
-                >
-                  Cancel
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button variant="contained" color="primary" type="submit">
-                  Save
-                </Button>
-              </Grid>
-            </>
-          ) : (
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleEditMode("noticeNews", true)}
-              >
-                Edit
-              </Button>
-            </Grid>
-          )}
-        </Grid>
-      </form>
-
-      <Divider sx={{ my: 2 }} />
-
-      <form onSubmit={(e) => handleSubmit(e, "aboutUs")}>
-        <Typography variant="h5" sx={{ mb: 5 }}>
-          About Us
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              label="Inspirational Quote"
-              name="aboutUs.inspirationalQuote.inspirationalQuoteMessage"
-              value={
-                formData.aboutUs?.inspirationalQuote
-                  .inspirationalQuoteMessage || ""
-              }
-              onChange={handleChange}
-              variant="outlined"
-              fullWidth
-              disabled={!editMode.aboutUs}
-            />
-          </Grid>
-          <Grid item xs={12} sx={{ mt: 1 }}>
-            <TextField
-              label="Quote Author"
-              name="aboutUs.inspirationalQuote.inspirationalQuoteAuthor"
-              value={
-                formData.aboutUs?.inspirationalQuote.inspirationalQuoteAuthor ||
-                ""
-              }
-              onChange={handleChange}
-              variant="outlined"
-              fullWidth
-              disabled={!editMode.aboutUs}
-            />
-          </Grid>
-
-          {formData.aboutUs?.messages.map((message, index) => (
-            <Grid container spacing={2} key={index} sx={{ mt: 5 }}>
-              <Typography variant="h5" sx={{ mb: 3, p: 3 }}>
-                {"Message " + index + 1}
+            <Grid item xs={12} sx={{ mt: 1 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Quote Author
               </Typography>
-              <Grid item xs={12}>
-                <TextField
-                  label={`Message Title ${index + 1}`}
-                  name={`aboutUs.messages.${index}.messageTitle`}
-                  value={message.messageTitle}
-                  onChange={handleChange}
-                  variant="outlined"
-                  fullWidth
-                  disabled={!editMode.aboutUs}
-                />
-              </Grid>
-              <Grid item xs={12} sx={{ mt: 1 }}>
-                <TextField
-                  label={`Message Content ${index + 1}`}
-                  name={`aboutUs.messages.${index}.messageContent`}
-                  value={message.messageContent}
-                  onChange={handleChange}
-                  variant="outlined"
-                  fullWidth
-                  disabled={!editMode.aboutUs}
-                />
-              </Grid>
-              <Grid item xs={12} sx={{ mt: 1 }}>
-                <TextField
-                  label={`Message By ${index + 1}`}
-                  name={`aboutUs.messages.${index}.messageBy`}
-                  value={message.messageBy}
-                  onChange={handleChange}
-                  variant="outlined"
-                  fullWidth
-                  disabled={!editMode.aboutUs}
-                />
-              </Grid>
-              <Grid item xs={12} sx={{ mt: 1 }}>
-                <TextField
-                  label={`Highlighted Message ${index + 1}`}
-                  name={`aboutUs.messages.${index}.highlightedMessage`}
-                  value={message.highlightedMessage}
-                  onChange={handleChange}
-                  variant="outlined"
-                  fullWidth
-                  disabled={!editMode.aboutUs}
-                />
-              </Grid>
+              <TextField
+                label="Quote Author"
+                name="aboutUs.inspirationalQuote.inspirationalQuoteAuthor"
+                value={
+                  formData.aboutUs?.inspirationalQuote
+                    .inspirationalQuoteAuthor || ""
+                }
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                disabled={!editMode.aboutUs}
+              />
             </Grid>
-          ))}
-        </Grid>
-        <Grid container spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
-          {editMode.aboutUs ? (
-            <>
+            <Grid item xs={12} sx={{ mt: 5 }}>
+              <Typography variant="overline">Messages</Typography>
+              <Typography variant="caption">
+                Messages For About-us Page
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Message Title</TableCell>
+                      <TableCell>Message Content</TableCell>
+                      <TableCell>Message By</TableCell>
+                      <TableCell>Highlighted Message</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {formData.aboutUs?.messages.map((message, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{message.messageTitle}</TableCell>
+                        <TableCell>{message.messageContent}</TableCell>
+                        <TableCell>{message.messageBy}</TableCell>
+                        <TableCell>{message.highlightedMessage}</TableCell>
+                        <TableCell>
+                          <IconButton
+                            onClick={() => handleEditMessageDialogOpen(index)}
+                          >
+                            <EditIcon color="primary" />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => handleDeleteMessage(index)}
+                          >
+                            <DeleteIcon color="error" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+          </Grid>
+          <Grid container spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
+            {editMode.aboutUs ? (
+              <>
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => handleEditMode("aboutUs", false)}
+                  >
+                    Cancel
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button variant="contained" color="primary" type="submit">
+                    Save
+                  </Button>
+                </Grid>
+              </>
+            ) : (
               <Grid item>
                 <Button
                   variant="contained"
-                  color="secondary"
-                  onClick={() => handleEditMode("aboutUs", false)}
+                  color="primary"
+                  onClick={() => handleEditMode("aboutUs", true)}
                 >
-                  Cancel
+                  Edit
                 </Button>
               </Grid>
-              <Grid item>
-                <Button variant="contained" color="primary" type="submit">
-                  Save
-                </Button>
-              </Grid>
-            </>
-          ) : (
+            )}
             <Grid item>
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => handleEditMode("aboutUs", true)}
+                onClick={handleMessageDialogOpen}
               >
-                Edit
+                <AddIcon /> Add Message
               </Button>
             </Grid>
-          )}
-        </Grid>
-      </form>
-    </Paper>
+          </Grid>
+        </form>
+
+        <Dialog open={openMessageDialog} onClose={handleMessageDialogClose}>
+          <DialogTitle>
+            {editMessageIndex !== null ? "Edit Message" : "Add New Message"}
+          </DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Message Title"
+              name="messageTitle"
+              value={newMessage.messageTitle}
+              onChange={handleNewMessageChange}
+              variant="outlined"
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Message Content"
+              name="messageContent"
+              value={newMessage.messageContent}
+              onChange={handleNewMessageChange}
+              variant="outlined"
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Message By"
+              name="messageBy"
+              value={newMessage.messageBy}
+              onChange={handleNewMessageChange}
+              variant="outlined"
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Highlighted Message"
+              name="highlightedMessage"
+              value={newMessage.highlightedMessage}
+              onChange={handleNewMessageChange}
+              variant="outlined"
+              fullWidth
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleMessageDialogClose} color="secondary">
+              Cancel
+            </Button>
+            <Button
+              onClick={
+                editMessageIndex !== null ? handleEditMessage : handleAddMessage
+              }
+              color="primary"
+            >
+              {editMessageIndex !== null ? "Save" : "Add"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Paper>
+    </>
   );
 };
 
