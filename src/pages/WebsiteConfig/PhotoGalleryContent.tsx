@@ -1,16 +1,19 @@
 import {
   Button,
-  Grid,
   Paper,
   TextField,
   Typography,
-  Divider,
   IconButton,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { db } from "../../firebase";
@@ -18,17 +21,10 @@ import { PhotoGalleryCategory } from "types/gallery";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
+import Confirmation from "../../utilities/Confirmation";
 
 const PhotoGalleryContent = () => {
-  // const [photoGalleryData, setPhotoGalleryData] = useState<
-  //   PhotoGalleryCategory[]
-  // >([]);
   const [formData, setFormData] = useState<Partial<PhotoGalleryCategory>[]>([]);
-  const [editMode, setEditMode] = useState<{ [key: string]: boolean }>({});
-  const [imageEditMode, setImageEditMode] = useState<{
-    [key: string]: boolean;
-  }>({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     type: "photo";
@@ -39,6 +35,10 @@ const PhotoGalleryContent = () => {
     Partial<PhotoGalleryCategory>
   >({});
   const [error, setError] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editEventData, setEditEventData] = useState<
+    Partial<PhotoGalleryCategory>
+  >({});
 
   useEffect(() => {
     const getPhotoGalleryData = async () => {
@@ -49,7 +49,6 @@ const PhotoGalleryContent = () => {
           .get();
         if (data.exists) {
           const galleryData = data.data()?.events as PhotoGalleryCategory[];
-          // setPhotoGalleryData(galleryData);
           setFormData(galleryData);
         } else {
           console.log("No such document found");
@@ -61,82 +60,6 @@ const PhotoGalleryContent = () => {
     };
     getPhotoGalleryData();
   }, []);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    index: number,
-    subIndex?: number
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => {
-      const updatedData = [...prev];
-      if (subIndex !== undefined) {
-        const updatedImages = [...(updatedData[index].images || [])];
-        updatedImages[subIndex] = {
-          ...updatedImages[subIndex],
-          imageUrl: value,
-        };
-        updatedData[index] = { ...updatedData[index], images: updatedImages };
-      } else {
-        updatedData[index] = { ...updatedData[index], [name]: value };
-      }
-      return updatedData;
-    });
-  };
-
-  const handleEditMode = (index: number, mode: boolean) => {
-    setEditMode((prev) => ({ ...prev, [`photoGallery-${index}`]: mode }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await db
-        .collection("WEBSITE_CONFIG")
-        .doc("photoGallary")
-        .set({ events: formData });
-      // setPhotoGalleryData(formData as PhotoGalleryCategory[]);
-      setError(null);
-    } catch (err) {
-      console.error("Error updating photo gallery data:", err);
-      setError("Failed to update photo gallery data.");
-    }
-  };
-
-  const handleAddImage = (index: number) => {
-    setFormData((prev) => {
-      const updatedData = [...prev];
-      if (!updatedData[index].images) {
-        updatedData[index].images = [{ imageUrl: "" }];
-      } else {
-        updatedData[index].images?.push({ imageUrl: "" });
-      }
-      return updatedData;
-    });
-  };
-
-  const handleDeleteImage = (galleryIndex: number, imageIndex: number) => {
-    setFormData((prev) => {
-      const updatedData = [...prev];
-      if (updatedData[galleryIndex].images) {
-        updatedData[galleryIndex].images = updatedData[
-          galleryIndex
-        ].images!.filter((_, i) => i !== imageIndex);
-      }
-      return updatedData;
-    });
-  };
-
-  const handleEditImage = (
-    galleryIndex: number,
-    imageIndex: number,
-    mode: boolean
-  ) => {
-    setImageEditMode((prev) => ({
-      ...prev,
-      [`${galleryIndex}-${imageIndex}`]: mode,
-    }));
-  };
 
   const handleAddPhotoEvent = () => {
     setAddDialogOpen(true);
@@ -157,7 +80,7 @@ const PhotoGalleryContent = () => {
           ...newEventData,
           eventId: newEventData.eventId || "",
           eventThumbnail: newEventData.eventThumbnail || "",
-          images: [{ imageUrl: "" }],
+          images: newEventData.images || [{ imageUrl: "" }],
         } as PhotoGalleryCategory,
       ];
       setFormData(updatedData);
@@ -166,8 +89,8 @@ const PhotoGalleryContent = () => {
       setNewEventData({});
       setError(null);
     } catch (err) {
-      console.error("Error adding new event:", err);
-      setError("Failed to add new event.");
+      console.error("Error adding new photo event:", err);
+      setError("Failed to add new photo event.");
     }
   };
 
@@ -181,15 +104,20 @@ const PhotoGalleryContent = () => {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteTarget) {
-      setFormData((prev) => {
-        const updatedData = prev.filter((_, i) => i !== deleteTarget.index);
-        return updatedData;
-      });
+      try {
+        const updatedData = formData.filter((_, i) => i !== deleteTarget.index);
+        setFormData(updatedData);
+        await saveFormData(updatedData); // Save changes to Firebase
+        setDeleteDialogOpen(false);
+        setDeleteTarget(null);
+        setError(null);
+      } catch (err) {
+        console.error("Error deleting photo event:", err);
+        setError("Failed to delete photo event.");
+      }
     }
-    setDeleteDialogOpen(false);
-    setDeleteTarget(null);
   };
 
   const cancelDelete = () => {
@@ -209,19 +137,97 @@ const PhotoGalleryContent = () => {
     }
   };
 
+  const handleEditDialogOpen = (index: number) => {
+    setEditEventData(formData[index]);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditDialogClose = () => {
+    setEditDialogOpen(false);
+    setEditEventData({});
+  };
+
+  const handleEditEventChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    imageIndex?: number
+  ) => {
+    const { name, value } = e.target;
+    setEditEventData((prev) => {
+      if (imageIndex !== undefined) {
+        const updatedImages = [...(prev.images || [])];
+        updatedImages[imageIndex] = {
+          ...updatedImages[imageIndex],
+          imageUrl: value,
+        };
+        return { ...prev, images: updatedImages };
+      }
+      return { ...prev, [name]: value };
+    });
+  };
+
+  const handleSaveEditEvent = async () => {
+    try {
+      const updatedData = formData.map((event) =>
+        event.eventId === editEventData.eventId ? editEventData : event
+      );
+      setFormData(updatedData);
+      await saveFormData(updatedData); // Save changes to Firebase
+      setEditDialogOpen(false);
+      setEditEventData({});
+      setError(null);
+    } catch (err) {
+      console.error("Error saving edited event:", err);
+      setError("Failed to save edited event.");
+    }
+  };
+
+  const handleDeleteImageFromEdit = (imageIndex: number) => {
+    setEditEventData((prev) => {
+      const updatedImages = (prev.images || []).filter(
+        (_, index) => index !== imageIndex
+      );
+      return { ...prev, images: updatedImages };
+    });
+  };
+
+  const handleAddImageToEdit = () => {
+    setEditEventData((prev) => ({
+      ...prev,
+      images: [...(prev.images || []), { imageUrl: "" }],
+    }));
+  };
+
+  const handleAddImageToNewEvent = () => {
+    setNewEventData((prev) => ({
+      ...prev,
+      images: [...(prev.images || []), { imageUrl: "" }],
+    }));
+  };
+
+  const handleNewEventImageChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    imageIndex: number
+  ) => {
+    const { value } = e.target;
+    setNewEventData((prev) => {
+      const updatedImages = [...(prev.images || [])];
+      updatedImages[imageIndex] = { imageUrl: value };
+      return { ...prev, images: updatedImages };
+    });
+  };
+
   return (
     <div>
+      <Typography variant="h4">Photo Gallery</Typography>
+      <Typography variant="caption">Update Photo Gallery Details</Typography>
+
       <Paper
         sx={{
           padding: "16px",
           color: "#000",
-          mb: 4,
+          my: 5,
         }}
       >
-        <Typography variant="h4" sx={{ mb: 7 }}>
-          Photo Gallery
-        </Typography>
-
         {error && (
           <Typography variant="body1" color="error" sx={{ mb: 2 }}>
             {error}
@@ -238,192 +244,146 @@ const PhotoGalleryContent = () => {
           Add Photo Event
         </Button>
 
-        {formData.map((photo, index) => (
-          <form key={index} onSubmit={handleSubmit}>
-            <div>
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Typography variant="h6" sx={{ mt: 3, p: 5 }}>
-                  {"Event " + (index + 1)}
-                </Typography>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Event ID"
-                    name="eventId"
-                    value={photo.eventId || ""}
-                    onChange={(e) => handleChange(e, index)}
-                    variant="outlined"
-                    fullWidth
-                    disabled={!editMode[`photoGallery-${index}`]}
-                  />
-                </Grid>
-                <Grid item xs={12} sx={{ mt: 1 }}>
-                  <TextField
-                    label="Photo Title"
-                    name="eventTitle"
-                    value={photo.eventTitle || ""}
-                    onChange={(e) => handleChange(e, index)}
-                    variant="outlined"
-                    fullWidth
-                    disabled={!editMode[`photoGallery-${index}`]}
-                  />
-                </Grid>
-                <Grid item xs={12} sx={{ mt: 1 }}>
-                  <TextField
-                    label="Event Thumbnail URL"
-                    name="eventThumbnail"
-                    value={photo.eventThumbnail || ""}
-                    onChange={(e) => handleChange(e, index)}
-                    variant="outlined"
-                    fullWidth
-                    disabled={!editMode[`photoGallery-${index}`]}
-                  />
-                </Grid>
-                <Grid item xs={12} sx={{ mt: 1 }}>
-                  <TextField
-                    label="Description"
-                    name="description"
-                    value={photo.description || ""}
-                    onChange={(e) => handleChange(e, index)}
-                    variant="outlined"
-                    fullWidth
-                    disabled={!editMode[`photoGallery-${index}`]}
-                  />
-                </Grid>
-                <Grid item xs={12} sx={{ mt: 1 }}>
-                  <TextField
-                    label="Event Date"
-                    name="eventDate"
-                    type="date"
-                    value={photo.eventDate?.toString().split("T")[0] || ""}
-                    onChange={(e) => handleChange(e, index)}
-                    variant="outlined"
-                    fullWidth
-                    disabled={!editMode[`photoGallery-${index}`]}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                  />
-                </Grid>
-                {editMode[`photoGallery-${index}`] && (
-                  <>
-                    <Grid item xs={12} sx={{ mt: 1 }}>
-                      <Typography variant="h6">Images:</Typography>
-                      {photo.images?.map((image, imgIndex) => (
-                        <Grid
-                          container
-                          spacing={2}
-                          key={imgIndex}
-                          sx={{ mt: 1 }}
-                        >
-                          <Grid item xs={8}>
-                            <TextField
-                              label={`Image URL ${imgIndex + 1}`}
-                              name="imageUrl"
-                              value={image.imageUrl}
-                              onChange={(e) => handleChange(e, index, imgIndex)}
-                              variant="outlined"
-                              fullWidth
-                              disabled={!imageEditMode[`${index}-${imgIndex}`]}
-                            />
-                          </Grid>
-                          <Grid item xs={2}>
-                            <IconButton
-                              aria-label="edit"
-                              onClick={() =>
-                                handleEditImage(
-                                  index,
-                                  imgIndex,
-                                  !imageEditMode[`${index}-${imgIndex}`]
-                                )
-                              }
-                            >
-                              {imageEditMode[`${index}-${imgIndex}`] ? (
-                                <SaveIcon color="success" />
-                              ) : (
-                                <EditIcon color="primary" />
-                              )}
-                            </IconButton>
-                          </Grid>
-                          <Grid item xs={2}>
-                            <IconButton
-                              aria-label="delete"
-                              onClick={() => handleDeleteImage(index, imgIndex)}
-                              disabled={!editMode[`photoGallery-${index}`]}
-                            >
-                              <DeleteIcon color="error" />
-                            </IconButton>
-                          </Grid>
-                        </Grid>
-                      ))}
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<AddIcon />}
-                        onClick={() => handleAddImage(index)}
-                        sx={{ mt: 2 }}
-                      >
-                        Add Image
-                      </Button>
-                    </Grid>
-                    <Grid item xs={12} sx={{ mt: 1 }}>
-                      <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => handleDeletePhotoEvent(index)}
-                        sx={{ mt: 2 }}
-                      >
-                        Delete Event
-                      </Button>
-                    </Grid>
-                  </>
-                )}
-                <Grid item xs={12} sx={{ mt: 1 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={
-                      editMode[`photoGallery-${index}`] ? (
-                        <SaveIcon />
-                      ) : (
-                        <EditIcon />
-                      )
-                    }
-                    onClick={() =>
-                      handleEditMode(index, !editMode[`photoGallery-${index}`])
-                    }
-                  >
-                    {editMode[`photoGallery-${index}`]
-                      ? "Save Event"
-                      : "Edit Event"}
-                  </Button>
-                </Grid>
-              </Grid>
-              <Divider sx={{ my: 2 }} />
-            </div>
-          </form>
-        ))}
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Event ID</TableCell>
+                <TableCell>Event Title</TableCell>
+                <TableCell>Event Thumbnail</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Event Date</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {formData.map((photo, index) => (
+                <TableRow key={index}>
+                  <TableCell>{photo.eventId}</TableCell>
+                  <TableCell>{photo.eventTitle}</TableCell>
+                  <TableCell>{photo.eventThumbnail}</TableCell>
+                  <TableCell>{photo.description}</TableCell>
+                  <TableCell>
+                    {photo.eventDate?.toString().split("T")[0]}
+                  </TableCell>
+                  <TableCell>
+                    <IconButton
+                      aria-label="edit"
+                      onClick={() => handleEditDialogOpen(index)}
+                    >
+                      <EditIcon color="primary" />
+                    </IconButton>
+                    <IconButton
+                      aria-label="delete"
+                      onClick={() => handleDeletePhotoEvent(index)}
+                    >
+                      <DeleteIcon color="error" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Paper>
 
       <Dialog
-        open={deleteDialogOpen}
-        onClose={cancelDelete}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        open={editDialogOpen}
+        onClose={handleEditDialogClose}
+        aria-labelledby="form-dialog-title"
       >
-        <DialogTitle id="alert-dialog-title">{"Confirm Delete"}</DialogTitle>
+        <DialogTitle id="form-dialog-title">Edit Event</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this event? This action cannot be
-            undone.
-          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="eventId"
+            label="Event ID"
+            type="text"
+            fullWidth
+            value={editEventData.eventId || ""}
+            onChange={handleEditEventChange}
+          />
+          <TextField
+            margin="dense"
+            name="eventTitle"
+            label="Event Title"
+            type="text"
+            fullWidth
+            value={editEventData.eventTitle || ""}
+            onChange={handleEditEventChange}
+          />
+          <TextField
+            margin="dense"
+            name="eventThumbnail"
+            label="Event Thumbnail URL"
+            type="text"
+            fullWidth
+            value={editEventData.eventThumbnail || ""}
+            onChange={handleEditEventChange}
+          />
+          <TextField
+            margin="dense"
+            name="description"
+            label="Description"
+            type="text"
+            fullWidth
+            value={editEventData.description || ""}
+            onChange={handleEditEventChange}
+          />
+          <TextField
+            margin="dense"
+            name="eventDate"
+            label="Event Date"
+            type="date"
+            fullWidth
+            InputLabelProps={{
+              shrink: true,
+            }}
+            value={editEventData.eventDate?.toString().split("T")[0] || ""}
+            onChange={handleEditEventChange}
+          />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Images:
+          </Typography>
+          {editEventData.images?.map((image, imageIndex) => (
+            <div
+              key={imageIndex}
+              style={{ display: "flex", alignItems: "center" }}
+            >
+              <TextField
+                margin="dense"
+                name="imageUrl"
+                label={`Image URL ${imageIndex + 1}`}
+                type="text"
+                fullWidth
+                value={image.imageUrl}
+                onChange={(e) => handleEditEventChange(e, imageIndex)}
+              />
+              <IconButton
+                aria-label="delete"
+                onClick={() => handleDeleteImageFromEdit(imageIndex)}
+              >
+                <DeleteIcon color="error" />
+              </IconButton>
+            </div>
+          ))}
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddImageToEdit}
+            sx={{ mt: 2 }}
+          >
+            Add Image
+          </Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={cancelDelete} color="primary">
+          <Button onClick={handleEditDialogClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={confirmDelete} color="error" autoFocus>
-            Delete
+          <Button onClick={handleSaveEditEvent} color="primary">
+            Save
           </Button>
         </DialogActions>
       </Dialog>
@@ -479,6 +439,30 @@ const PhotoGalleryContent = () => {
             }}
             onChange={handleNewEventChange}
           />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Images:
+          </Typography>
+          {newEventData.images?.map((image, imageIndex) => (
+            <TextField
+              key={imageIndex}
+              margin="dense"
+              name="imageUrl"
+              label={`Image URL ${imageIndex + 1}`}
+              type="text"
+              fullWidth
+              value={image.imageUrl}
+              onChange={(e) => handleNewEventImageChange(e, imageIndex)}
+            />
+          ))}
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddImageToNewEvent}
+            sx={{ mt: 2 }}
+          >
+            Add Image
+          </Button>
         </DialogContent>
         <DialogActions>
           <Button onClick={cancelAddNewEvent} color="primary">
@@ -489,6 +473,14 @@ const PhotoGalleryContent = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Confirmation
+        open={deleteDialogOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title="Confirm Delete"
+        description="Are you sure you want to delete this event? This action cannot be undone."
+      />
     </div>
   );
 };

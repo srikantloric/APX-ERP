@@ -15,6 +15,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { SchoolInfo } from "types/schoolInfo";
@@ -112,7 +113,7 @@ const WebsiteContent = () => {
   const handleDialogOpen = () => {
     setNewNotice({
       noticeContent: "",
-      createdAt: new Date().toISOString().split("T")[0],
+      createdAt: new Date().toString().split("T")[0] || "",
     });
     setOpenDialog(true);
   };
@@ -278,6 +279,8 @@ const WebsiteContent = () => {
           <Typography variant="h5">School Info</Typography>
           <Typography variant="caption">School basic details</Typography>
 
+          <Divider sx={{ my: 2 }} />
+
           <Grid container spacing={2} sx={{ mt: 3 }}>
             <Grid item xs={12} md={6}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -373,8 +376,6 @@ const WebsiteContent = () => {
         </form>
       </Paper>
 
-      {/* <Divider sx={{ my: 2 }} /> */}
-
       <Paper
         sx={{
           padding: "16px",
@@ -383,9 +384,15 @@ const WebsiteContent = () => {
         }}
       >
         <form onSubmit={(e) => handleSubmit(e, "noticeNews")}>
-          <Typography variant="h5" sx={{ mb: 5 }}>
+          <Typography variant="h5">
             Notice & News
           </Typography>
+          <Typography variant="caption">
+            Update Notice & News Details
+          </Typography>
+
+          <Divider sx={{ my: 2 }} />
+
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -418,7 +425,7 @@ const WebsiteContent = () => {
                       <TableRow key={index}>
                         <TableCell>{notice.noticeContent}</TableCell>
                         <TableCell>
-                          {new Date(notice.createdAt).toLocaleDateString()}
+                          {notice.createdAt.toString().split("T")[0]}
                         </TableCell>
                         <TableCell>
                           <IconButton
@@ -530,9 +537,13 @@ const WebsiteContent = () => {
         }}
       >
         <form onSubmit={(e) => handleSubmit(e, "aboutUs")}>
-          <Typography variant="h5" sx={{ mb: 5 }}>
-            About Us Page
+          <Typography variant="h5">About Us Page</Typography>
+          <Typography variant="caption">
+            Update About-us Page Details
           </Typography>
+
+          <Divider sx={{ my: 2 }} />
+
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
