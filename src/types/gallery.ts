@@ -4,9 +4,9 @@ export interface PhotoGalleryCategory {
     description: string;
     eventThumbnail: string;
     eventDate: Date;
-    images: [{
+    images: {
         imageUrl: string;
-    }];
+    }[];
 }
 
 export interface VideoGalleryCategory {
@@ -15,7 +15,7 @@ export interface VideoGalleryCategory {
     description: string;
     eventThumbnail: string;
     eventDate: Date;
-    videos: [{
+    videos: {
         videoUrl: string;
-    }];
+    }[];
 }

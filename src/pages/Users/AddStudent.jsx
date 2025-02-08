@@ -201,18 +201,6 @@ function AddStudent() {
 
   useEffect(() => {
     const VehicleDetail = async () => {
-      // const transportRef = db.collection("TRANSPORT").doc("vechile");
-      // const vechileDetails = await transportRef.get();
-
-      // if (vechileDetails.exists) {
-      //   const data = vechileDetails.data();
-      //   if (data) {
-      //     data.vehicle.forEach(() => {
-      //       setTransportData(data.vehicle);
-      //     });
-      //   }
-      // }
-      // console.log("data", transportData);
       const transportRef = db.collection("TRANSPORT").doc("transportLocations");
       const doc = await transportRef.get();
       if (doc.exists) {
