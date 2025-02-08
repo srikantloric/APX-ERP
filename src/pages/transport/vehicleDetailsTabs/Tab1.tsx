@@ -4,6 +4,7 @@ import { Button, Sheet } from "@mui/joy";
 import AddVehicleModal from "components/Modals/transport/AddVehicleModal";
 import { db } from "../../../firebase";
 import { useEffect, useState } from "react";
+import EditVehicleDetail from "components/Modals/transport/EditVehicleDetail";
 
 type SerialNumber = {
   serialNo?: number;
@@ -25,6 +26,8 @@ type TransportData = SerialNumber & {
 function Tab1() {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
   const [transportVehicle, setTransportVehicle] = useState<TransportData[]>([]);
+  const [selectedVechile, setSelectedVehicle] = useState<TransportData | null>(null)
+
 
   const handleAddVehicleModalClose = () => {
     setIsAddVehicleModalOpen(false);
@@ -40,13 +43,7 @@ function Tab1() {
     { title: "Available Seat", field: "monthlyCharge" },
   ];
 
-  // const transportData = [
-  //     { serialNo: 1, pickupPointName: "Pickup Point 1", distance: "5 km", monthlyCharge: "1000" },
-  //     { serialNo: 2, pickupPointName: "Pickup Point 2", distance: "10 km", monthlyCharge: "1500" },
-  //     { serialNo: 3, pickupPointName: "Pickup Point 3", distance: "15 km", monthlyCharge: "2000" },
-  //     { serialNo: 4, pickupPointName: "Pickup Point 4", distance: "20 km", monthlyCharge: "2500" },
-  //     { serialNo: 5, pickupPointName: "Pickup Point 5", distance: "25 km", monthlyCharge: "3000" },
-  // ]
+ 
   const fetchTransportData = async () => {
     const transportRef = db.collection("TRANSPORT").doc("transportLocations");
     const doc = await transportRef.get();
@@ -102,7 +99,11 @@ function Tab1() {
             {
               icon: () => <Edit sx={{ color: "var(--bs-primary)" }} />,
               tooltip: "Edit Row",
-              onClick: (event, rowData) => {},
+              
+              onClick: (event, rowData) => {
+                setSelectedVehicle(rowData as TransportData);
+                setIsAddVehicleModalOpen(true)
+              },
             },
           ]}
         />
@@ -111,6 +112,16 @@ function Tab1() {
         open={isAddVehicleModalOpen}
         onClose={handleAddVehicleModalClose}
       />
+      {selectedVechile &&
+      <EditVehicleDetail open={isAddVehicleModalOpen}
+       onClose={handleAddVehicleModalClose} 
+       selectedVehicle={selectedVechile}
+       VehicleData={transportVehicle}
+
+
+       
+      />
+      }
     </>
   );
 }
