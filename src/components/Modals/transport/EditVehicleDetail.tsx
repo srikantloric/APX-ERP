@@ -31,29 +31,31 @@ type TransportData = SerialNumber & {
   pollutionDate: string;
 };
 
-type AddPickupPointDialogProps = {
+type EditVehicleDetailProps = {
   open: boolean;
   onClose: () => void;
+  VehicleData:TransportData[],
+  selectedVehicle:TransportData,
 };
 
-function AddVehicleModal(props: AddPickupPointDialogProps) {
-  const { open, onClose } = props;
+function EditVehicleDetail(props: EditVehicleDetailProps) {
+  const { open, onClose,VehicleData,selectedVehicle } = props;
   const [formState, setFormState] = useState<TransportData>({
-    vehicleName:"",
+    vehicleName: selectedVehicle.vehicleName ,
 
-    driverName: "",
-    conductorName: "",
-    registerNumber: "",
-    totalSeat: "",
-    licenseDate: "",
+    driverName: selectedVehicle.driverName,
+    conductorName: selectedVehicle.conductorName,
+    registerNumber: selectedVehicle.registerNumber,
+    totalSeat: selectedVehicle.totalSeat,
+    licenseDate: selectedVehicle.licenseDate,
 
-    rcDate: "",
-    insuranceDate: "",
-    pollutionDate: "",
+    rcDate:selectedVehicle.rcDate,
+    insuranceDate: selectedVehicle.insuranceDate,
+    pollutionDate: selectedVehicle.pollutionDate,
   });
 
   const [formError, setFormError] = useState({
-    vehicleName: "",
+    vehicleName:"",
 
     driverName: "",
     conductorName: "",
@@ -111,9 +113,11 @@ function AddVehicleModal(props: AddPickupPointDialogProps) {
         vehicleId,
         ...formState,
       };
-      const transportRef = db.collection("TRANSPORT").doc("transportLocations");
+      const VechileIndex=VehicleData.findIndex(Vehicle=>Vehicle.vehicleId ===selectedVehicle.vehicleId)
+      VehicleData[VechileIndex]=transportDataForSave
+  const transportRef = db.collection("TRANSPORT").doc("transportLocations");
       transportRef.update({
-        vehicle: firebase.firestore.FieldValue.arrayUnion(transportDataForSave),
+           vehicle:VehicleData       
       });
       setFormState({
         vehicleId: vehicleId,
@@ -128,7 +132,7 @@ function AddVehicleModal(props: AddPickupPointDialogProps) {
         pollutionDate: "",
       });
       onClose();
-      enqueueSnackbar("Vechicle Added Successfully", {
+      enqueueSnackbar("Vechicle updated Successfully", {
         variant: "success",
       });
     }
@@ -263,4 +267,5 @@ function AddVehicleModal(props: AddPickupPointDialogProps) {
   );
 }
 
-export default AddVehicleModal;
+export default EditVehicleDetail;
+

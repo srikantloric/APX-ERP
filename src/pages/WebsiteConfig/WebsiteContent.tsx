@@ -279,9 +279,9 @@ const WebsiteContent = () => {
           <Typography variant="h5">School Info</Typography>
           <Typography variant="caption">School basic details</Typography>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ mt: 2, mb: 5 }} />
 
-          <Grid container spacing={2} sx={{ mt: 3 }}>
+          <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 School Name
@@ -384,14 +384,12 @@ const WebsiteContent = () => {
         }}
       >
         <form onSubmit={(e) => handleSubmit(e, "noticeNews")}>
-          <Typography variant="h5">
-            Notice & News
-          </Typography>
+          <Typography variant="h5">Notice & News</Typography>
           <Typography variant="caption">
             Update Notice & News Details
           </Typography>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ mt: 2, mb: 5 }} />
 
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -408,6 +406,43 @@ const WebsiteContent = () => {
                 disabled={!editMode.noticeNews}
               />
             </Grid>
+
+            <Grid
+              container
+              spacing={2}
+              justifyContent="flex-end"
+              sx={{ mt: 2 }}
+            >
+              {editMode.noticeNews ? (
+                <>
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      onClick={() => handleEditMode("noticeNews", false)}
+                    >
+                      Cancel
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button variant="contained" color="primary" type="submit">
+                      Save
+                    </Button>
+                  </Grid>
+                </>
+              ) : (
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleEditMode("noticeNews", true)}
+                  >
+                    Edit
+                  </Button>
+                </Grid>
+              )}
+            </Grid>
+
             <Grid item xs={12} sx={{ mt: 5 }}>
               <Typography variant="h6">Notices</Typography>
               <Typography variant="caption">Notice For Notice Board</Typography>
@@ -445,34 +480,6 @@ const WebsiteContent = () => {
             </Grid>
           </Grid>
           <Grid container spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
-            {editMode.noticeNews ? (
-              <>
-                <Grid item>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleEditMode("noticeNews", false)}
-                  >
-                    Cancel
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="contained" color="primary" type="submit">
-                    Save
-                  </Button>
-                </Grid>
-              </>
-            ) : (
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handleEditMode("noticeNews", true)}
-                >
-                  Edit
-                </Button>
-              </Grid>
-            )}
             <Grid item>
               <Button
                 variant="contained"
@@ -542,7 +549,7 @@ const WebsiteContent = () => {
             Update About-us Page Details
           </Typography>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ mt: 2, mb: 5 }} />
 
           <Grid container spacing={2}>
             <Grid item xs={12}>
