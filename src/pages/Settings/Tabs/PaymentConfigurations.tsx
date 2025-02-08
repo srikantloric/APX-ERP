@@ -95,9 +95,9 @@ function PaymentConfigurations() {
 
     db.collection("CONFIG")
       .doc("PAYMENT_CONFIG")
-      .update({
+      .set({
         defaultMonthlyFee: config.defaultMonthlyFee,
-      })
+      },{merge:true})
       .then(() => {
         enqueueSnackbar("Configuration has been successfully updated!", {
           variant: "success",
