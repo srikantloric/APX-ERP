@@ -9,7 +9,7 @@ import {
 } from "@mui/joy";
 import { useState } from "react";
 import { db } from "../../../firebase";
-import firebase from "firebase";
+
 import { enqueueSnackbar } from "notistack";
 
 type SerialNumber = {
