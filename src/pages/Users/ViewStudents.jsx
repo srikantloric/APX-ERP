@@ -283,6 +283,7 @@ function ViewStudents() {
                   <em>Select</em>
                 </MenuItem>
                 <MenuItem value="2023/24">2023/24</MenuItem>
+                <MenuItem value="2025/26">2025/26</MenuItem>
               </Select>
             </FormControl>
 
