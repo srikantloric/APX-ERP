@@ -113,19 +113,19 @@ export const SCHOOL_GENDERS = [
   {
 
     title: "Male",
-    value: "Male"
+    value: "male"
 
   },
   {
 
     title: "Female",
-    value: "Female"
+    value: "female"
 
   },
   {
 
     title: "Other",
-    value: "Other"
+    value: "other"
 
   },
 
@@ -158,9 +158,6 @@ export const CASTES = [
   { title: "Scheduled Tribe (ST)", value: "ST" },
   { title: "Other Backward Class (OBC)", value: "OBC" },
   { title: "Economically Weaker Section (EWS)", value: "EWS" },
-  { title: "Nomadic Tribe (NT)", value: "NT" },
-  { title: "Denotified Tribe (DNT)", value: "DNT" },
-  { title: "Vimukta Jati (VJ)", value: "VJ" },
   { title: "Other", value: "Other" },
 ];
 

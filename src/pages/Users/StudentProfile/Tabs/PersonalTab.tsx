@@ -255,6 +255,7 @@ const PersonalTab: React.FC<StudentProfileProps> = ({ studentData }) => {
                       >
                         <Option value="male">Male</Option>
                         <Option value="female">Female</Option>
+                        <Option value="other">Other</Option>
                       </Select>
                     )}
                   />
