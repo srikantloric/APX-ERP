@@ -232,6 +232,7 @@ function AddStudentNew() {
                             values.admission_fee = Number(values.admission_fee || 0);
                             console.log("called..")
                             dispatch(
+                                // @ts-ignore
                                 addstudent({ studentData: values })
                             ).unwrap()
                                 .then((d) => {

@@ -14,7 +14,6 @@ import ReadMoreIcon from "@mui/icons-material/ReadMore";
 import Navbar from "components/Navbar/Navbar";
 import LSPage from "components/Utils/LSPage";
 import PageContainer from "components/Utils/PageContainer";
-import Styles from "../../pages/Users/AddStudent.module.scss";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import AddIcon from "@mui/icons-material/Add";
 import { useForm } from "react-hook-form";
@@ -149,7 +148,7 @@ const AdmissionEnquiry = () => {
         {isNewEnquiryFromVisible ? (
           <Paper
             sx={{ padding: "10px 30px", margin: "0px 10px " }}
-            className={Styles.paper}
+            elevation={3}
           >
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}

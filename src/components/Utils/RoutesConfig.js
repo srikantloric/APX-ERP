@@ -18,7 +18,6 @@ import {
   IconBus,
   IconDatabaseCog,
 } from "@tabler/icons-react";
-import AddStudent from "../../pages/Users/AddStudent";
 import UnderConstruction from "../../pages/Extras/UnderConstruction";
 import FeeManager from "../../pages/FeeManager/FeeManager";
 import FeaturesConfig from "../../FeaturesConfig";
@@ -35,6 +34,7 @@ import MasterData from "pages/MasterData/MasterData";
 import Reports from "pages/Reports/Reports";
 import Transport from "pages/transport/Transport";
 import WebsiteConfig from "pages/WebsiteConfig/WebsiteConfigPage";
+import AddStudentNew from "pages/Users/AddStudentNew";
 
 export const routesConfig = [
   {
@@ -63,21 +63,21 @@ export const routesConfig = [
 
         isCollapsable: false,
         isHeader: false,
-        Component: <AddStudent />,
+        Component: <AddStudentNew />,
       },
       {
         title: "View Student",
         to: "students/view-students",
         isCollapsable: false,
         isHeader: false,
-        Component: <AddStudent />,
+        Component: <AddStudentNew />,
       },
       {
         title: "Admission Enquire",
         to: "students/Admission-students",
         isCollapsable: false,
         isHeader: false,
-        Component: <AddStudent />,
+        Component: <AddStudentNew />,
       },
     ],
   },
