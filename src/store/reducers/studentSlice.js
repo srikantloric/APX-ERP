@@ -12,151 +12,74 @@ const resizeFile = (file) =>
       resolve(uri);
     });
   });
+
+  const generateFirebaseUID = () => {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let uid = "";
+    for (let i = 0; i < 28; i++) {
+      uid += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return uid;
+  };
+
 //ADD STUDENT
 export const addstudent = createAsyncThunk(
   "add-students/addstudent",
-  async ({ studentData, studentProfile }, { rejectWithValue }) => {
-    ///fetch previous admission count
-    const prevAdmissionNumber = await db
-      .collection("ADMISSION_TRACKER")
-      .doc("admission_number_tracker")
-      .get();
-    console.log(prevAdmissionNumber.data());
+  async ({ studentData }, { rejectWithValue }) => {
+    console.log("From Student Slice",studentData)
+    try {
+      // Fetch previous admission count
+      const prevAdmissionDoc = await db
+        .collection("ADMISSION_TRACKER")
+        .doc("admission_number_tracker")
+        .get();
 
-    if (prevAdmissionNumber.exists) {
+      if (!prevAdmissionDoc.exists) {
+        throw new Error("Error fetching previous admission number.");
+      }
 
-      const formatedCountValue = String(
-        prevAdmissionNumber.data().total_count + 1
-      ).padStart(5, "0");
-      console.log(formatedCountValue);
+      const prevAdmissionNumber = prevAdmissionDoc.data().total_count;
+      const formattedCountValue = String(prevAdmissionNumber + 1).padStart(5, "0");
 
-      let userPass = String(studentData.dob).split("-").reverse().join(""); //extracting password from dob
-      const userEmail = "ops2024" + formatedCountValue + "@gmail.com"; // creating userID using admission no
-      studentData["student_id"] = userEmail;
-      studentData["student_pass"] = userPass;
-      studentData["admission_no"] = "OPS2024"+formatedCountValue;
-      studentData["created_at"] =firebase.firestore.FieldValue.serverTimestamp()
-      console.log(userPass);
+      // Extract password from DOB and generate email
+      const userPass = studentData.dob.split("-").reverse().join(""); 
+      const userEmail = `apx2025${formattedCountValue}@gmail.com`;
 
-      // / Creating user in db
-      return auth
-        .createUserWithEmailAndPassword(userEmail, userPass)
-        .then((user) => {
-          const userId = user.user.uid;
-          studentData["id"] = userId;
-          //adding user to db
-          const studentRef = db.collection("STUDENTS").doc(userId);
-          const admissionNumberTrackerRef = db
-            .collection("ADMISSION_TRACKER")
-            .doc("admission_number_tracker");
+      const docId = generateFirebaseUID();
+     
+      studentData = {
+        ...studentData,
+        student_id: userEmail,
+        student_pass: userPass,
+        id:docId,
+        admission_no: `APX2025${formattedCountValue}`,
+        created_at: firebase.firestore.FieldValue.serverTimestamp(),
+      };
 
-          return db
-            .runTransaction((trx) => {
-              return trx.get(admissionNumberTrackerRef).then((countData) => {
-                if (!countData.exists) {
-                  throw Object.assign(
-                    new Error("Document does not exisit"),
-                    { code: 402 }
-                 );
-                }
+      const studentRef = db.collection("STUDENTS").doc(docId);
+      const admissionTrackerRef = db.collection("ADMISSION_TRACKER").doc("admission_number_tracker");
 
-                var newSerialNumber = countData.data().total_count + 1;
+      // Firestore Transaction to update admission tracker and save student data
+      await db.runTransaction(async (trx) => {
+        const countDoc = await trx.get(admissionTrackerRef);
+        if (!countDoc.exists) throw new Error("Document does not exist.");
 
-                trx.update(admissionNumberTrackerRef, {
-                  total_count: newSerialNumber,
-                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                trx.set(studentRef, studentData);
-                return studentData;
-           
-              });
-            })
-            .then((studentData) => {
-              console.log("Transaction successfull", studentData);
-              ///uploading user profile in storage
-              if (studentProfile) {
-                const fileRef = storageRef.child(
-                  `profileImages/${userId}/${studentData.email}`
-                );
-                resizeFile(studentProfile).then((img) => {
-                  // const uploadTask = fileRef.put(img);
-                  const uploadTask = fileRef.putString(img, "data_url");
-                  uploadTask.on(
-                    "state_changed",
-                    function (snapshot) {},
-                    function (error) {
-                      return rejectWithValue(error);
-                    },
-                    function () {
-                      fileRef.getDownloadURL().then((url) => {
-                        let fData = {
-                          profil_url: url,
-                        };
-                        studentData["profil_url"] = url;
-                        studentData["updated_at"] =firebase.firestore.FieldValue.serverTimestamp()
-
-                        ///saving image url in doc
-                        return db
-                          .collection("STUDENTS")
-                          .doc(userId)
-                          .update(fData)
-                          .then(() => {
-                            return studentData;
-                          })
-                          .catch((er) => {
-                            return rejectWithValue(er);
-                          });
-                      });
-                    }
-                  );
-                });
-              } else {
-                let fData = {
-                  profil_url:
-                    studentData.gender === "male" ? MALE_DUMMY : FEMALE_DUMMY,
-                };
-                studentData["profil_url"] = fData.profil_url;
-                studentData["updated_at"] =firebase.firestore.FieldValue.serverTimestamp()
-                ///saving image url in doc
-                return db
-                  .collection("STUDENTS")
-                  .doc(userId)
-                  .update(fData)
-                  .then(() => {
-                    return studentData;
-                  })
-                  .catch((er) => {
-                    console.log(er)
-                    return rejectWithValue(er);
-                  });
-              }
-            })
-            .catch((err) => {
-              console.log(err);
-              return rejectWithValue(err);
-            });
-
-          //   return db
-          //   .collection("STUDENTS")
-          //   .doc(userId)
-          //   .set(studentData)
-          //   .then((snapshot) => {
-
-          //       })
-          //       .catch((error) => {
-          //       console.log(error);
-          //       return rejectWithValue(error);
-          //     });
-        })
-        .catch((error) => {
-          console.log(error);
-          return rejectWithValue(error);
+        const newSerialNumber = countDoc.data().total_count + 1;
+        trx.update(admissionTrackerRef, {
+          total_count: newSerialNumber,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
-    } else {
-      console.log("error fetching previous admission number...");
+        trx.set(studentRef, studentData);
+      });
+      return studentData;
+    } catch (error) {
+      console.error(error);
+      return rejectWithValue(error.message);
     }
   }
 );
+
 
 //FETCH STUDENT
 export const fetchstudent = createAsyncThunk("student/fetchstudent", () => {

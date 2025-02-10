@@ -21,7 +21,7 @@ function ButtonWrapper({ children, ...otherProps }: ButtonWrapperProps) {
     fullWidth: true,
   };
 
-  return <Button {...configButton}>{children}</Button>;
+  return <Button {...configButton} >{children}</Button>;
 }
 
 export default ButtonWrapper;

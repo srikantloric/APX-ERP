@@ -12,7 +12,7 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import Textfield from "../../components/FormsUi/Textfield"
 import Select from "../../components/FormsUi/Select"
 import DateTimePicker from "components/FormsUi/DateTimePicker";
-import Button from "../../components/FormsUi/Button"
+
 import SelectCustom from "../../components/FormsUi/SelectCustom"
 
 import * as Yup from "yup"
@@ -21,6 +21,14 @@ import { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import { IconEdit } from "@tabler/icons-react";
 import { TransportLocationType, TransportVehicleType } from "types/transport";
+import TransportFeeField from "components/FormsUi/Textfield/TransportFeeField";
+import MonthlyFeeField from "components/FormsUi/Textfield/MonthlyFeeField";
+
+import { addstudent } from "store/reducers/studentSlice";
+import { useDispatch } from "store";
+import { enqueueSnackbar } from "notistack";
+import LoadingButtonWrapper from "components/FormsUi/LoadingButton";
+
 
 
 const SeperatorHeader = styled("div")(({ theme }) => (
@@ -77,10 +85,17 @@ const FormValidationSchema = Yup.object().shape({
     transport_location: Yup.string().required("required"),
     transport_vehicle: Yup.string().optional(),
     monthly_fee: Yup.number().required("required"),
+    computer_fee: Yup.number().optional(),
+    transport_fee: Yup.number().optional(),
+    admission_fee: Yup.number().optional()
 
 })
 
 function AddStudentNew() {
+
+    //loading
+    const [loading, setLoading] = useState(false);
+
     const [transportLocations, setTransportLocations] = useState<TransportLocationType[]>([]);
     const [transportVehicle, setTransportVehicle] = useState<TransportVehicleType[]>([]);
 
@@ -91,18 +106,21 @@ function AddStudentNew() {
     const [isTransportationFeeEditable, setIsTransportationFeeEditable] = useState(true);
     const [defaultFee, setDefaultFee] = useState(null);
 
+    const dispatch = useDispatch();
+
+
 
     const InitialFormState = {
         student_name: "",
         class: "",
         section: "",
         class_roll: "",
-        dob: "",
-        date_of_addmission: "",
+        dob: new Date(),
+        date_of_addmission: new Date(),
         gender: "",
         blood_group: "",
         religion: "",
-        cate: "",
+        caste: "",
         aadhar_number: "",
         father_name: "",
         father_occupation: "",
@@ -119,7 +137,10 @@ function AddStudentNew() {
         postal_code: "",
         transport_location: "",
         transport_vehicle: "",
-        monthly_fee: ""
+        monthly_fee: 0,
+        transport_fee: 0,
+        computer_fee: 0,
+        admission_fee: 0
 
     }
 
@@ -152,6 +173,10 @@ function AddStudentNew() {
         fetchTransportData();
         fetchDefaultFees();
     }, []);
+
+
+
+
 
     return (
         <PageContainer>
@@ -199,19 +224,29 @@ function AddStudentNew() {
                     <Formik
                         initialValues={{ ...InitialFormState }}
                         validationSchema={FormValidationSchema}
-                        onSubmit={async (values, { setSubmitting, validateForm }) => {
-                            const errors = await validateForm(values); // Get validation errors
-                            console.error(errors);
-                            if (Object.keys(errors).length > 0) {
-                                console.log("Form Errors:", errors); // Log errors if any
-                            } else {
-                                console.log("Form Values:", values); // Log values if no errors
-                            }
-
+                        onSubmit={(values, { resetForm }) => {
+                            setLoading(true);
+                            values.monthly_fee = Number(values.monthly_fee || 0);
+                            values.transport_fee = Number(values.transport_fee || 0);
+                            values.computer_fee = Number(values.computer_fee || 0);
+                            values.admission_fee = Number(values.admission_fee || 0);
+                            console.log("called..")
+                            dispatch(
+                                addstudent({ studentData: values })
+                            ).unwrap()
+                                .then((d) => {
+                                    enqueueSnackbar("Successfully Registered", { variant: "success" });
+                                    setLoading(false);
+                                    resetForm();
+                                })
+                                .catch((e) => {
+                                    console.log({ "dispatch error": e });
+                                    enqueueSnackbar(e, { variant: "error" });
+                                    setLoading(false);
+                                });
                         }}
-
                     >
-                        {({ values }) => (
+                        {({ values, setFieldValue }) => (
                             <Form>
                                 <SeperatorHeader>Personal Details</SeperatorHeader>
                                 <Grid container spacing={2}>
@@ -435,19 +470,23 @@ function AddStudentNew() {
                                         md={2}
                                         sx={{ display: "flex", alignItems: "center", gap: "2px" }}
                                     >
-                                        <Textfield
-                                            label="Monthly Fee"
-                                            name="monthly_fee"
-                                           
-                                            disabled={isMonthlyFeeEditable}
-                                            value={defaultFee && defaultFee[`class_${values.class}`]}
-                                        />
+                                        {defaultFee &&
+                                            (
+                                                <>
+                                                    <MonthlyFeeField
+                                                        defaultFee={defaultFee}
+                                                        disabled={isMonthlyFeeEditable}
+                                                        type="number"
+                                                    />
 
-                                        <IconEdit
-                                            stroke={2}
-                                            style={iconStyle}
-                                            onClick={() => setIsMonthlyFeeEditable(!isMonthlyFeeEditable)}
-                                        />
+                                                    <IconEdit
+                                                        stroke={2}
+                                                        style={iconStyle}
+                                                        onClick={() => setIsMonthlyFeeEditable(!isMonthlyFeeEditable)}
+                                                    />
+                                                </>
+                                            )
+                                        }
                                     </Grid>
                                     <Grid
                                         item
@@ -474,11 +513,10 @@ function AddStudentNew() {
                                         md={2}
                                         sx={{ display: "flex", alignItems: "center", gap: "2px" }}
                                     >
-                                        <Textfield
-                                            label={"Transport Fee"}
-                                            name="transportation_fee"
+                                        <TransportFeeField
+                                            transportLocations={transportLocations}
                                             disabled={isTransportationFeeEditable}
-                                            value={transportLocations.filter((item) => item.locationId === values.transport_location)[0]?.monthlyCharge}
+                                            type="number"
                                         />
                                         <IconEdit
                                             stroke={2}
@@ -497,6 +535,7 @@ function AddStudentNew() {
                                         <Textfield
                                             label="Admission Fee"
                                             name="admission_fee"
+                                            type="number"
                                             disabled={isAdmissionFeeEditable}
                                         />
                                         <IconEdit
@@ -514,20 +553,16 @@ function AddStudentNew() {
                                     <Grid
                                         item
                                     >
-                                        <Button
-                                            variant="contained"
-                                            disableElevation
-                                            color="secondary"
-                                        >
+                                        <LoadingButtonWrapper variant="solid" color="danger" >
                                             Reset
-                                        </Button>
+                                        </LoadingButtonWrapper>
                                     </Grid>
                                     <Grid
                                         item
                                     >
-                                        <Button variant="contained" color="primary" type="submit">
+                                        <LoadingButtonWrapper variant="solid" loading={loading} color="primary" >
                                             Submit
-                                        </Button>
+                                        </LoadingButtonWrapper>
                                     </Grid>
                                 </Grid>
                                 <br />
