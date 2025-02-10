@@ -22,6 +22,7 @@
     "faker": "^5.5.3",
     "file-saver": "^2.0.5",
     "firebase": "^8.10.0",
+    "formik": "^2.4.6",
     "framer-motion": "^10.16.4",
     "iconsax-react": "^0.0.8",
     "jspdf": "^2.5.1",
@@ -48,6 +49,7 @@
     "uuid": "^9.0.1",
     "web-vitals": "^2.1.4",
     "xlsx": "^0.18.5",
+    "yup": "^1.6.1",
     "zod": "^3.22.4"
   },
   "scripts": {

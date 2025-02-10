@@ -5,11 +5,8 @@ import LSPage from "../../components/Utils/LSPage";
 import {
   Breadcrumbs,
   Button,
-  Checkbox,
   CircularProgress,
   FormControl,
-  FormControlLabel,
-  FormGroup,
   Grid,
   InputAdornment,
   InputLabel,
@@ -52,9 +49,6 @@ function AddStudent() {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const handleImageChange = (e) => {
-    setSelectedImage(e.target.files[0]);
-  };
 
   const [formData, setFormData] = useState({
     student_id: "",
@@ -142,62 +136,16 @@ function AddStudent() {
       .get()
       .then((snap) => {
         if (snap.exists) {
-          setDefaultFee(snap.data().defaultMonthlyFee);
+          setDefaultFee(snap.data()?.defaultMonthlyFee);
         }
       });
   }, []);
 
   useEffect(() => {
     if (formData.class && defaultFee) {
-      switch (formData.class) {
-        case 1:
-          setMonthlyFee(defaultFee.class_1);
-          break;
-        case 2:
-          setMonthlyFee(defaultFee.class_2);
-          break;
-        case 3:
-          setMonthlyFee(defaultFee.class_3);
-          break;
-        case 4:
-          setMonthlyFee(defaultFee.class_4);
-          break;
-        case 5:
-          setMonthlyFee(defaultFee.class_5);
-          break;
-        case 6:
-          setMonthlyFee(defaultFee.class_6);
-          break;
-        case 7:
-          setMonthlyFee(defaultFee.class_7);
-          break;
-        case 8:
-          setMonthlyFee(defaultFee.class_8);
-          break;
-        case 9:
-          setMonthlyFee(defaultFee.class_9);
-          break;
-        case 10:
-          setMonthlyFee(defaultFee.class_10);
-          break;
-        case 11:
-          setMonthlyFee(defaultFee.class_11);
-          break;
-        case 12:
-          setMonthlyFee(defaultFee.class_12);
-          break;
-        case 13:
-          setMonthlyFee(defaultFee.class_13);
-          break;
-        case 14:
-          setMonthlyFee(defaultFee.class_14);
-          break;
-        default:
-          setMonthlyFee(0);
-          break;
-      }
+      setMonthlyFee(defaultFee[`class_${formData.class}`] || 0);
     }
-  }, [formData.class]);
+  }, [formData.class, defaultFee]);
 
   useEffect(() => {
     const VehicleDetail = async () => {
@@ -205,12 +153,10 @@ function AddStudent() {
       const doc = await transportRef.get();
       if (doc.exists) {
         const data = doc.data();
-        console.log(data);
         if (data) {
           setTransportDataLocation(data.locations);
           settransportVehicle(data.vehicle);
         } else {
-          setTransportDataLocation([]);
           console.log("No such document!");
         }
       }
@@ -664,35 +610,7 @@ function AddStudent() {
             </Grid>
             <span className={Styles.inputSeperator}>Transport</span>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel id="demo-simple-select-label" required>
-                    Vehile
-                  </InputLabel>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    label="Vehicle"
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        vehicleName: e.target.value,
-                      }))
-                    }
-                    required
-                  >
-                    {transportVehicle.map((item) => {
-                      return (
-                        <MenuItem key={item.vehicleId} value={item.vehicleName}>
-                          {item.vehicleName}
-                        </MenuItem>
-                      );
-                    })}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4}>
                 <FormControl fullWidth>
                   <InputLabel id="demo-simple-select-label" required>
                     Pickup Location
@@ -722,6 +640,36 @@ function AddStudent() {
                   </Select>
                 </FormControl>
               </Grid>
+      
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label" required>
+                    Vehile
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    label="Vehicle"
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        vehicleName: e.target.value,
+                      }))
+                    }
+                    required
+                  >
+                    {transportVehicle.map((item) => {
+                      return (
+                        <MenuItem key={item.vehicleId} value={item.vehicleName}>
+                          {item.vehicleName}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+             
             </Grid>
             <span className={Styles.inputSeperator}>Fee Details</span>
             <Grid
@@ -864,59 +812,8 @@ function AddStudent() {
                 />
               </Grid>
             </Grid>
-
-            <Grid container spacing={2}>
-              <Typography
-                variant="h6"
-                marginLeft="1rem"
-                width="100%"
-                gutterBottom
-                sx={{ mt: 5 }}
-              >
-                Select Student Photo
-              </Typography>
-
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <input
-                  type="file"
-                  accept="image/png ,image/jpeg"
-                  style={{ display: "none" }}
-                  id="imageInput"
-                  onChange={handleImageChange}
-                />
-                {selectedImage && (
-                  <img
-                    src={URL.createObjectURL(selectedImage)}
-                    alt="hinchik dhinchik"
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "50%",
-                      marginLeft: "1rem",
-                    }}
-                  />
-                )}
-              </div>
-              <label htmlFor="imageInput">
-                <Button
-                  component="span"
-                  variant="outlined"
-                  style={{ marginTop: "10px", marginLeft: "1rem" }}
-                >
-                  Choose Image
-                </Button>
-              </label>
-            </Grid>
-
             <br />
-            <br />
-            <FormGroup>
-              <FormControlLabel
-                control={<Checkbox />}
-                label="I here by confirm that above details provided are correct and only used for official purpose."
-              />
-            </FormGroup>
-            <br />
+       
             <Grid sx={{ display: "flex", justifyContent: "end" }}>
               <Button
                 sx={{

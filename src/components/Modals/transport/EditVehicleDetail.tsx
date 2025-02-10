@@ -1,271 +1,164 @@
 import { DialogTitle, Modal, ModalDialog, Stack } from "@mui/joy";
-import {
-  Button,
-  Divider,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Input,
-} from "@mui/joy";
-import { useState } from "react";
+
 import { db } from "../../../firebase";
-
 import { enqueueSnackbar } from "notistack";
+import { TransportVehicleType } from "types/transport";
 
-type SerialNumber = {
-  serialNo?: number;
-  vehicleId?: string;
-};
+//form imports
+import * as Yup from "yup"
+import { Formik } from "formik";
 
-type TransportData = SerialNumber & {
-  vehicleName: string;
+//custom Ui Components
+import Textfield from "components/FormsUi/Textfield";
+import DateTimePicker from "components/FormsUi/DateTimePicker";
 
-  driverName: string;
-  conductorName: string;
-  registerNumber: string;
-  totalSeat: string;
-  licenseDate: string;
-  rcDate: string;
+import LoadingButton from "components/FormsUi/LoadingButton"
 
-  insuranceDate: string;
-  pollutionDate: string;
-};
+import { Divider } from "@mui/material";
+import { useState } from "react";
 
-type EditVehicleDetailProps = {
+
+
+const FormValidationSchema = Yup.object().shape({
+  vehicleName: Yup.string().required("Vehicle name is required"),
+  vehicleContact: Yup.string().required("Contact number is required").min(10, "Please enter 10 digit number").max(10, "Please enter 10 digit number"),
+  driverName: Yup.string().required("Driver name is required"),
+  conductorName: Yup.string().optional(),
+  registrationNumber: Yup.string().required("Registration number required"),
+  totalSeat: Yup.string().required("Total number of seat in vehicle is required"),
+  licenseDate: Yup.string().optional(),
+  rcDate: Yup.string().optional(),
+  insuranceDate: Yup.string().optional(),
+  pollutionDate: Yup.string().optional(),
+})
+
+type AddPickupPointDialogProps = {
   open: boolean;
   onClose: () => void;
-  VehicleData:TransportData[],
-  selectedVehicle:TransportData,
+  fetchVehicleData: () => void;
+  selectedVehicle: TransportVehicleType,
+  vehicleData: TransportVehicleType[],
 };
 
-function EditVehicleDetail(props: EditVehicleDetailProps) {
-  const { open, onClose,VehicleData,selectedVehicle } = props;
-  const [formState, setFormState] = useState<TransportData>({
-    vehicleName: selectedVehicle.vehicleName ,
+function AddVehicleModal(props: AddPickupPointDialogProps) {
+  const { open, onClose, fetchVehicleData, selectedVehicle, vehicleData } = props;
+  const [loading, setLoading] = useState(false);
 
+  const FormInitialState: TransportVehicleType = {
+    vehicleName: selectedVehicle.vehicleName,
     driverName: selectedVehicle.driverName,
+    vehicleContact: selectedVehicle.vehicleContact,
     conductorName: selectedVehicle.conductorName,
-    registerNumber: selectedVehicle.registerNumber,
+    registrationNumber: selectedVehicle.registrationNumber,
     totalSeat: selectedVehicle.totalSeat,
     licenseDate: selectedVehicle.licenseDate,
-
-    rcDate:selectedVehicle.rcDate,
+    rcDate: selectedVehicle.rcDate,
     insuranceDate: selectedVehicle.insuranceDate,
     pollutionDate: selectedVehicle.pollutionDate,
-  });
+  }
 
-  const [formError, setFormError] = useState({
-    vehicleName:"",
+  const saveVehicleToDb = async (vehicle: TransportVehicleType) => {
+    try {
+      setLoading(true);
 
-    driverName: "",
-    conductorName: "",
-    registerNumber: "",
-    totalSeat: "",
-    licenseDate: "",
-
-    rcDate: "",
-    insuranceDate: "",
-    pollutionDate: "",
-  });
-
-  const handleFormChange = (e: any) => {
-    setFormError({
-      ...formError,
-      [e.target.name]: "",
-    });
-    setFormState({
-      ...formState,
-      [e.target.name]: e.target.value,
-    });
-  };
-  const handleFormSubmit = async (e: any) => {
-    e.preventDefault();
-    let error = false;
-    const newFormError = {
-      vehicleName: formState.vehicleName ? "" : "Vehicle Name is Required",
-
-      driverName: formState.driverName ? "" : "Driver Name is Required",
-      conductorName: formState.conductorName
-        ? ""
-        : "Conducter Name is Required",
-
-      registerNumber: formState.registerNumber
-        ? ""
-        : "Register Number Required",
-      totalSeat: formState.totalSeat ? "" : "Total Seat is Required",
-      licenseDate: formState.licenseDate ? "" : "Lincense sate is required",
-      rcDate: formState.rcDate ? "" : "Rc Date is required",
-      insuranceDate: formState.insuranceDate ? "" : "Insurance Date required",
-      pollutionDate: formState.pollutionDate
-        ? ""
-        : " Pollution Dateis required",
-    };
-    setFormError(newFormError);
-    error = Object.values(newFormError).some((err) => err !== "");
-    if (!error) {
-      const generateUniqueNumber = () => {
-        return Math.floor(100000 + Math.random() * 900000).toString();
+      const transportDataForSave: TransportVehicleType = {
+        ...vehicle
       };
-
-      const vehicleId = generateUniqueNumber(); // Generate a unique 6 digit transport ID
-
-      const transportDataForSave: TransportData = {
-        vehicleId,
-        ...formState,
-      };
-      const VechileIndex=VehicleData.findIndex(Vehicle=>Vehicle.vehicleId ===selectedVehicle.vehicleId)
-      VehicleData[VechileIndex]=transportDataForSave
-  const transportRef = db.collection("TRANSPORT").doc("transportLocations");
-      transportRef.update({
-           vehicle:VehicleData       
+      const vehicleIndex = vehicleData.findIndex(vehicle => vehicle.vehicleId === selectedVehicle.vehicleId)
+      vehicleData[vehicleIndex] = transportDataForSave
+      const transportRef = db.collection("TRANSPORT").doc("transportLocations");
+      await transportRef.update({
+        vehicles: vehicleData
       });
-      setFormState({
-        vehicleId: vehicleId,
-        vehicleName: "",
-        driverName: "",
-        conductorName: "",
-        registerNumber: "",
-        totalSeat: "",
-        licenseDate: "",
-        rcDate: "",
-        insuranceDate: "",
-        pollutionDate: "",
-      });
+      setLoading(false);
+      enqueueSnackbar("Vehicle added successfully", { variant: "success" });
+      fetchVehicleData();
       onClose();
-      enqueueSnackbar("Vechicle updated Successfully", {
-        variant: "success",
-      });
+    } catch (error) {
+      console.error("Error adding vehicle:", error);
+      enqueueSnackbar("Failed to add vehicle. Please try again.", { variant: "error" });
+      setLoading(false);
     }
   };
 
   return (
     <Modal open={open} onClose={onClose}>
       <ModalDialog minWidth="md" sx={{ overflow: "scroll" }}>
-        <DialogTitle>Create New Pickup Point</DialogTitle>
-        <form onSubmit={handleFormSubmit}>
+        <DialogTitle>Edit Vehicle</DialogTitle>
+        <Divider />
+        <Formik
+          initialValues={{ ...FormInitialState }}
+          validationSchema={FormValidationSchema}
+          onSubmit={(values) => {
+            saveVehicleToDb(values);
+          }}
+        >
           <Stack spacing={2}>
-            <FormControl error={formError.vehicleName ? true : false}>
-              <FormLabel>Name</FormLabel>
-              <Input
-                placeholder="Bus/Vechile Name"
-                onChange={handleFormChange}
+            <Stack direction={"row"} spacing={2}>
+              <Textfield
+                label="Bus/Vechile Name"
                 name="vehicleName"
-                value={formState.vehicleName}
+                required
               />
-              {formError.vehicleName && (
-                <FormHelperText>{formError.vehicleName}</FormHelperText>
-              )}
-            </FormControl>
-            <FormControl error={formError.registerNumber ? true : false}>
-              <FormLabel>Number</FormLabel>
-              <Input
-                placeholder="Registration Number"
-                onChange={handleFormChange}
-                name="registerNumber"
-                value={formState.registerNumber}
+              <Textfield
+                label="Vehicle Registration Number"
+                name="registrationNumber"
               />
-              {formError.registerNumber && (
-                <FormHelperText>{formError.registerNumber}</FormHelperText>
-              )}
-            </FormControl>
-            <FormControl error={formError.driverName ? true : false}>
-              <FormLabel>Driver Name</FormLabel>
-              <Input
-                placeholder="Name"
-                onChange={handleFormChange}
+            </Stack>
+            <Stack direction={"row"} spacing={2}>
+              <Textfield
+                label="Driver Name"
                 name="driverName"
-                value={formState.driverName}
+                required
               />
-              {formError.driverName && (
-                <FormHelperText>{formError.driverName}</FormHelperText>
-              )}
-            </FormControl>
-            <FormControl error={formError.conductorName ? true : false}>
-              <FormLabel>Conduter</FormLabel>
-              <Input
-                placeholder="Conduter Name"
+              <Textfield
+                label="Vehicle Contact"
+                name="vehicleContact"
+                required
+              />
+            </Stack>
+            <Stack direction={"row"} spacing={2}>
+              <Textfield
+                label="Conductor Name"
                 name="conductorName"
-                value={formState.conductorName}
-                onChange={handleFormChange}
               />
-              {formError.conductorName && (
-                <FormHelperText>{formError.conductorName}</FormHelperText>
-              )}
-            </FormControl>
-            <FormControl error={formError.totalSeat ? true : false}>
-              <FormLabel>Total seat</FormLabel>
-              <Input
-                placeholder="Total Seat"
+              <Textfield
+                label="Total Seat"
                 name="totalSeat"
-                value={formState.totalSeat}
-                onChange={handleFormChange}
+                required
               />
-              {formError.totalSeat && (
-                <FormHelperText>{formError.totalSeat}</FormHelperText>
-              )}
-            </FormControl>
-            <FormControl error={formError.totalSeat ? true : false}>
-              <FormLabel>License Date</FormLabel>
-              <Input
-                placeholder="dd-mm-yyyy"
+            </Stack>
+            <Stack direction={"row"} gap={2}>
+              <DateTimePicker
+                label="License Date"
                 name="licenseDate"
-                type="date"
-                value={formState.licenseDate}
-                onChange={handleFormChange}
               />
-              {formError.licenseDate && (
-                <FormHelperText>{formError.licenseDate}</FormHelperText>
-              )}
-            </FormControl>
-            <FormControl error={formError.rcDate ? true : false}>
-              <FormLabel>Rc Date</FormLabel>
-              <Input
-                placeholder="dd-mm-yyyy"
+              <DateTimePicker
+                label="RC Date"
                 name="rcDate"
-                type="date"
-                value={formState.rcDate}
-                onChange={handleFormChange}
               />
-              {formError.rcDate && (
-                <FormHelperText>{formError.rcDate}</FormHelperText>
-              )}
-            </FormControl>
-            <FormControl error={formError.insuranceDate ? true : false}>
-              <FormLabel>Insurance Date</FormLabel>
-              <Input
-                placeholder="dd-mm-yyyy"
+            </Stack>
+
+            <Stack direction={"row"} gap={2}>
+
+              <DateTimePicker
+                label="Insurance Date"
                 name="insuranceDate"
-                type="date"
-                value={formState.insuranceDate}
-                onChange={handleFormChange}
               />
-              {formError.insuranceDate && (
-                <FormHelperText>{formError.insuranceDate}</FormHelperText>
-              )}
-            </FormControl>
-            <FormControl error={formError.insuranceDate ? true : false}>
-              <FormLabel>Pollution Date</FormLabel>
-              <Input
-                placeholder="dd-mm-yyyy"
+              <DateTimePicker
+                label="Pollution Date"
                 name="pollutionDate"
-                type="date"
-                value={formState.pollutionDate}
-                onChange={handleFormChange}
               />
-              {formError.pollutionDate && (
-                <FormHelperText>{formError.pollutionDate}</FormHelperText>
-              )}
-            </FormControl>
+            </Stack>
             <Divider sx={{ mt: 1 }} />
-            <Button type="submit" color="primary">
-              Add
-            </Button>
+            <LoadingButton loading={loading}>
+              Save Changes
+            </LoadingButton>
           </Stack>
-        </form>
+        </Formik>
       </ModalDialog>
     </Modal>
   );
 }
 
-export default EditVehicleDetail;
-
+export default AddVehicleModal;

@@ -22,7 +22,7 @@ type AddPickupPointDialogProps = {
 }
 
 function AddPickupPointModal(props: AddPickupPointDialogProps) {
-  const { open, onClose,fetchTransportData } = props
+  const { open, onClose, fetchTransportData } = props
   const [formState, setFormState] = useState<TransportData>({
     pickupPointName: "",
     distance: "",
@@ -70,9 +70,9 @@ function AddPickupPointModal(props: AddPickupPointDialogProps) {
       };
 
       const transportRef = db.collection("TRANSPORT").doc("transportLocations");
-      transportRef.update({
+      transportRef.set({
         locations: firebase.firestore.FieldValue.arrayUnion(transportDataForSave)
-      });
+      }, { merge: true });
       setFormState({
         pickupPointName: "",
         distance: "",

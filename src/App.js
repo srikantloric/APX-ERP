@@ -38,6 +38,7 @@ import DemandSlip from "pages/Reports/DemandSlip";
 import Transport from "pages/transport/Transport";
 import VehicleDetails from "pages/transport/VehicleDetails";
 import WebsiteConfig from "pages/WebsiteConfig/WebsiteConfigPage";
+import AddStudentNew from "pages/Users/AddStudentNew";
 
 const StudentProfilePictureUpdater = Loadable(
   lazy(() => import("pages/ProfileUpdater/StudentProfilePictureUpdater"))
@@ -86,7 +87,7 @@ function App() {
             <Routes>
               <Route path="/" element={<DashboardLayout />}>
                 {routeItems}
-                <Route path="students/add-students" element={<AddStudent />} />
+                <Route path="students/add-students" element={<AddStudentNew />} />
                 <Route
                   path="students/update-student/:id"
                   element={<UpdateStudent />}
