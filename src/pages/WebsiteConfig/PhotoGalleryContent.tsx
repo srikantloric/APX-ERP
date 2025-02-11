@@ -1,19 +1,20 @@
 import {
   Button,
   Paper,
-  TextField,
   Typography,
   IconButton,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Grid,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { db } from "../../firebase";
@@ -21,24 +22,18 @@ import { PhotoGalleryCategory } from "types/gallery";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import Confirmation from "../../utilities/Confirmation";
+import { Formik, Form, Field } from "formik";
+import { photoGallerySchema } from "./validationSchemas";
 
 const PhotoGalleryContent = () => {
   const [formData, setFormData] = useState<Partial<PhotoGalleryCategory>[]>([]);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    type: "photo";
-    index: number;
-  } | null>(null);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newEventData, setNewEventData] = useState<
-    Partial<PhotoGalleryCategory>
-  >({});
   const [error, setError] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editEventData, setEditEventData] = useState<
     Partial<PhotoGalleryCategory>
   >({});
+  const [editImagesDialogOpen, setEditImagesDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   useEffect(() => {
     const getPhotoGalleryData = async () => {
@@ -61,85 +56,9 @@ const PhotoGalleryContent = () => {
     getPhotoGalleryData();
   }, []);
 
-  const handleAddPhotoEvent = () => {
-    setAddDialogOpen(true);
-  };
-
-  const handleNewEventChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setNewEventData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddNewEvent = async () => {
-    try {
-      const updatedData = [
-        ...formData,
-        {
-          ...newEventData,
-          eventId: newEventData.eventId || "",
-          eventThumbnail: newEventData.eventThumbnail || "",
-          images: newEventData.images || [{ imageUrl: "" }],
-        } as PhotoGalleryCategory,
-      ];
-      setFormData(updatedData);
-      await saveFormData(updatedData); // Save changes to Firebase
-      setAddDialogOpen(false);
-      setNewEventData({});
-      setError(null);
-    } catch (err) {
-      console.error("Error adding new photo event:", err);
-      setError("Failed to add new photo event.");
-    }
-  };
-
-  const cancelAddNewEvent = () => {
-    setAddDialogOpen(false);
-    setNewEventData({});
-  };
-
-  const handleDeletePhotoEvent = (index: number) => {
-    setDeleteTarget({ type: "photo", index });
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (deleteTarget) {
-      try {
-        const updatedData = formData.filter((_, i) => i !== deleteTarget.index);
-        setFormData(updatedData);
-        await saveFormData(updatedData); // Save changes to Firebase
-        setDeleteDialogOpen(false);
-        setDeleteTarget(null);
-        setError(null);
-      } catch (err) {
-        console.error("Error deleting photo event:", err);
-        setError("Failed to delete photo event.");
-      }
-    }
-  };
-
-  const cancelDelete = () => {
-    setDeleteDialogOpen(false);
-    setDeleteTarget(null);
-  };
-
-  const saveFormData = async (data: Partial<PhotoGalleryCategory>[]) => {
-    try {
-      await db
-        .collection("WEBSITE_CONFIG")
-        .doc("photoGallary")
-        .set({ events: data });
-    } catch (err) {
-      console.error("Error saving photo gallery data:", err);
-      setError("Failed to save photo gallery data.");
-    }
-  };
-
-  const handleEditDialogOpen = (index: number) => {
+  const handleRowClick = (index: number) => {
     setEditEventData(formData[index]);
-    setEditDialogOpen(true);
+    setEditImagesDialogOpen(true);
   };
 
   const handleEditDialogClose = () => {
@@ -147,37 +66,55 @@ const PhotoGalleryContent = () => {
     setEditEventData({});
   };
 
-  const handleEditEventChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    imageIndex?: number
-  ) => {
-    const { name, value } = e.target;
-    setEditEventData((prev) => {
-      if (imageIndex !== undefined) {
-        const updatedImages = [...(prev.images || [])];
-        updatedImages[imageIndex] = {
-          ...updatedImages[imageIndex],
-          imageUrl: value,
-        };
-        return { ...prev, images: updatedImages };
-      }
-      return { ...prev, [name]: value };
-    });
+  const handleEditImagesDialogClose = () => {
+    setEditImagesDialogOpen(false);
+    setEditEventData({});
   };
 
-  const handleSaveEditEvent = async () => {
+  const handleAddDialogClose = () => {
+    setAddDialogOpen(false);
+  };
+
+  const handleSaveEditEvent = async (values: Partial<PhotoGalleryCategory>) => {
     try {
       const updatedData = formData.map((event) =>
-        event.eventId === editEventData.eventId ? editEventData : event
+        event.eventId === values.eventId ? values : event
       );
       setFormData(updatedData);
-      await saveFormData(updatedData); // Save changes to Firebase
+      await db
+        .collection("WEBSITE_CONFIG")
+        .doc("photoGallary")
+        .set({ events: updatedData }); // Save changes to Firebase
       setEditDialogOpen(false);
       setEditEventData({});
       setError(null);
     } catch (err) {
       console.error("Error saving edited event:", err);
       setError("Failed to save edited event.");
+    }
+  };
+
+  const handleAddNewEvent = async (values: Partial<PhotoGalleryCategory>) => {
+    try {
+      const updatedData = [
+        ...formData,
+        {
+          ...values,
+          eventId: values.eventId || "",
+          eventThumbnail: values.eventThumbnail || "",
+          images: values.images || [{ imageUrl: "" }],
+        } as PhotoGalleryCategory,
+      ];
+      setFormData(updatedData);
+      await db
+        .collection("WEBSITE_CONFIG")
+        .doc("photoGallary")
+        .set({ events: updatedData });
+      setAddDialogOpen(false);
+      setError(null);
+    } catch (err) {
+      console.error("Error adding new photo event:", err);
+      setError("Failed to add new photo event.");
     }
   };
 
@@ -197,23 +134,26 @@ const PhotoGalleryContent = () => {
     }));
   };
 
-  const handleAddImageToNewEvent = () => {
-    setNewEventData((prev) => ({
-      ...prev,
-      images: [...(prev.images || []), { imageUrl: "" }],
-    }));
-  };
-
-  const handleNewEventImageChange = (
+  const handleEditEventChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     imageIndex: number
   ) => {
     const { value } = e.target;
-    setNewEventData((prev) => {
-      const updatedImages = [...(prev.images || [])];
-      updatedImages[imageIndex] = { imageUrl: value };
+    setEditEventData((prev) => {
+      const updatedImages = (prev.images || []).map((image, index) =>
+        index === imageIndex ? { ...image, imageUrl: value } : image
+      );
       return { ...prev, images: updatedImages };
     });
+  };
+
+  const handleEditContentDialogOpen = (index: number) => {
+    setEditEventData(formData[index]);
+    setEditDialogOpen(true);
+  };
+
+  const handleAddPhotoEvent = () => {
+    setAddDialogOpen(true);
   };
 
   return (
@@ -234,15 +174,17 @@ const PhotoGalleryContent = () => {
           </Typography>
         )}
 
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddPhotoEvent}
-          sx={{ mb: 2 }}
-        >
-          Add Photo Event
-        </Button>
+        <Grid container spacing={2} justifyContent="flex-end">
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddPhotoEvent}
+            sx={{ mb: 2 }}
+          >
+            Add Photo Event
+          </Button>
+        </Grid>
 
         <TableContainer component={Paper}>
           <Table>
@@ -258,7 +200,11 @@ const PhotoGalleryContent = () => {
             </TableHead>
             <TableBody>
               {formData.map((photo, index) => (
-                <TableRow key={index}>
+                <TableRow
+                  key={index}
+                  onClick={() => handleRowClick(index)}
+                  style={{ cursor: "pointer" }}
+                >
                   <TableCell>{photo.eventId}</TableCell>
                   <TableCell>{photo.eventTitle}</TableCell>
                   <TableCell>{photo.eventThumbnail}</TableCell>
@@ -269,13 +215,19 @@ const PhotoGalleryContent = () => {
                   <TableCell>
                     <IconButton
                       aria-label="edit"
-                      onClick={() => handleEditDialogOpen(index)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditContentDialogOpen(index);
+                      }}
                     >
                       <EditIcon color="primary" />
                     </IconButton>
                     <IconButton
                       aria-label="delete"
-                      onClick={() => handleDeletePhotoEvent(index)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // handleDeletePhotoEvent(index); // Uncomment and implement this function if needed
+                      }}
                     >
                       <DeleteIcon color="error" />
                     </IconButton>
@@ -294,193 +246,228 @@ const PhotoGalleryContent = () => {
       >
         <DialogTitle id="form-dialog-title">Edit Event</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="eventId"
-            label="Event ID"
-            type="text"
-            fullWidth
-            value={editEventData.eventId || ""}
-            onChange={handleEditEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventTitle"
-            label="Event Title"
-            type="text"
-            fullWidth
-            value={editEventData.eventTitle || ""}
-            onChange={handleEditEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventThumbnail"
-            label="Event Thumbnail URL"
-            type="text"
-            fullWidth
-            value={editEventData.eventThumbnail || ""}
-            onChange={handleEditEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="description"
-            label="Description"
-            type="text"
-            fullWidth
-            value={editEventData.description || ""}
-            onChange={handleEditEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventDate"
-            label="Event Date"
-            type="date"
-            fullWidth
-            InputLabelProps={{
-              shrink: true,
-            }}
-            value={editEventData.eventDate?.toString().split("T")[0] || ""}
-            onChange={handleEditEventChange}
-          />
+          <Formik
+            initialValues={editEventData}
+            validationSchema={photoGallerySchema}
+            onSubmit={handleSaveEditEvent}
+          >
+            {({ errors, touched }) => (
+              <Form>
+                <Field
+                  as={TextField}
+                  autoFocus
+                  margin="dense"
+                  name="eventId"
+                  label="Event ID"
+                  type="text"
+                  fullWidth
+                  error={touched.eventId && !!errors.eventId}
+                  helperText={touched.eventId && errors.eventId}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventTitle"
+                  label="Event Title"
+                  type="text"
+                  fullWidth
+                  error={touched.eventTitle && !!errors.eventTitle}
+                  helperText={touched.eventTitle && errors.eventTitle}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventThumbnail"
+                  label="Event Thumbnail URL"
+                  type="text"
+                  fullWidth
+                  error={touched.eventThumbnail && !!errors.eventThumbnail}
+                  helperText={touched.eventThumbnail && errors.eventThumbnail}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="description"
+                  label="Description"
+                  type="text"
+                  fullWidth
+                  error={touched.description && !!errors.description}
+                  helperText={touched.description && errors.description}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventDate"
+                  label="Event Date"
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  error={touched.eventDate && !!errors.eventDate}
+                  helperText={touched.eventDate && errors.eventDate}
+                />
+                <DialogActions>
+                  <Button onClick={handleEditDialogClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button type="submit" color="primary">
+                    Save
+                  </Button>
+                </DialogActions>
+              </Form>
+            )}
+          </Formik>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={editImagesDialogOpen}
+        onClose={handleEditImagesDialogClose}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">Edit Event Images</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} justifyContent="flex-end">
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddImageToEdit}
+              sx={{ mt: 2, mb: 2 }}
+            >
+              Add Image
+            </Button>
+          </Grid>
           <Typography variant="h6" sx={{ mt: 2 }}>
             Images:
           </Typography>
-          {editEventData.images?.map((image, imageIndex) => (
-            <div
-              key={imageIndex}
-              style={{ display: "flex", alignItems: "center" }}
-            >
-              <TextField
-                margin="dense"
-                name="imageUrl"
-                label={`Image URL ${imageIndex + 1}`}
-                type="text"
-                fullWidth
-                value={image.imageUrl}
-                onChange={(e) => handleEditEventChange(e, imageIndex)}
-              />
-              <IconButton
-                aria-label="delete"
-                onClick={() => handleDeleteImageFromEdit(imageIndex)}
-              >
-                <DeleteIcon color="error" />
-              </IconButton>
-            </div>
-          ))}
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddImageToEdit}
-            sx={{ mt: 2 }}
-          >
-            Add Image
-          </Button>
+          <Grid container spacing={2}>
+            {editEventData.images?.map((image, imageIndex) => (
+              <Grid item xs={12} sm={4} key={imageIndex}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <TextField
+                    margin="dense"
+                    name="imageUrl"
+                    label={`Image URL ${imageIndex + 1}`}
+                    type="text"
+                    fullWidth
+                    value={image.imageUrl}
+                    onChange={(e) => handleEditEventChange(e, imageIndex)}
+                  />
+                  <IconButton
+                    aria-label="delete"
+                    onClick={() => handleDeleteImageFromEdit(imageIndex)}
+                  >
+                    <DeleteIcon color="error" />
+                  </IconButton>
+                </div>
+              </Grid>
+            ))}
+          </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditDialogClose} color="primary">
+          <Button onClick={handleEditImagesDialogClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleSaveEditEvent} color="primary">
+          <Button
+            onClick={() => handleSaveEditEvent(editEventData)}
+            color="primary"
+          >
             Save
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Add New Event Block */}
       <Dialog
         open={addDialogOpen}
-        onClose={cancelAddNewEvent}
+        onClose={handleAddDialogClose}
         aria-labelledby="form-dialog-title"
       >
         <DialogTitle id="form-dialog-title">Add New Event</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="eventId"
-            label="Event ID"
-            type="text"
-            fullWidth
-            onChange={handleNewEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventTitle"
-            label="Event Title"
-            type="text"
-            fullWidth
-            onChange={handleNewEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventThumbnail"
-            label="Event Thumbnail URL"
-            type="text"
-            fullWidth
-            onChange={handleNewEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="description"
-            label="Description"
-            type="text"
-            fullWidth
-            onChange={handleNewEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventDate"
-            label="Event Date"
-            type="date"
-            fullWidth
-            InputLabelProps={{
-              shrink: true,
+          <Formik
+            initialValues={{
+              eventId: "",
+              eventTitle: "",
+              eventThumbnail: "",
+              description: "",
+              eventDate: new Date(),
+              images: [{ imageUrl: "" }],
             }}
-            onChange={handleNewEventChange}
-          />
-          <Typography variant="h6" sx={{ mt: 2 }}>
-            Images:
-          </Typography>
-          {newEventData.images?.map((image, imageIndex) => (
-            <TextField
-              key={imageIndex}
-              margin="dense"
-              name="imageUrl"
-              label={`Image URL ${imageIndex + 1}`}
-              type="text"
-              fullWidth
-              value={image.imageUrl}
-              onChange={(e) => handleNewEventImageChange(e, imageIndex)}
-            />
-          ))}
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddImageToNewEvent}
-            sx={{ mt: 2 }}
+            validationSchema={photoGallerySchema}
+            onSubmit={handleAddNewEvent}
           >
-            Add Image
-          </Button>
+            {({ errors, touched }) => (
+              <Form>
+                <Field
+                  as={TextField}
+                  autoFocus
+                  margin="dense"
+                  name="eventId"
+                  label="Event ID"
+                  type="text"
+                  fullWidth
+                  error={touched.eventId && !!errors.eventId}
+                  helperText={touched.eventId && errors.eventId}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventTitle"
+                  label="Event Title"
+                  type="text"
+                  fullWidth
+                  error={touched.eventTitle && !!errors.eventTitle}
+                  helperText={touched.eventTitle && errors.eventTitle}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventThumbnail"
+                  label="Event Thumbnail URL"
+                  type="text"
+                  fullWidth
+                  error={touched.eventThumbnail && !!errors.eventThumbnail}
+                  helperText={touched.eventThumbnail && errors.eventThumbnail}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="description"
+                  label="Description"
+                  type="text"
+                  fullWidth
+                  error={touched.description && !!errors.description}
+                  helperText={touched.description && errors.description}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventDate"
+                  label="Event Date"
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  error={touched.eventDate && !!errors.eventDate}
+                  helperText={touched.eventDate && errors.eventDate}
+                />
+                <DialogActions>
+                  <Button onClick={handleAddDialogClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button type="submit" color="primary">
+                    Add
+                  </Button>
+                </DialogActions>
+              </Form>
+            )}
+          </Formik>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={cancelAddNewEvent} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleAddNewEvent} color="primary">
-            Add
-          </Button>
-        </DialogActions>
       </Dialog>
-
-      <Confirmation
-        open={deleteDialogOpen}
-        onClose={cancelDelete}
-        onConfirm={confirmDelete}
-        title="Confirm Delete"
-        description="Are you sure you want to delete this event? This action cannot be undone."
-      />
     </div>
   );
 };

@@ -1,44 +1,39 @@
 import {
   Button,
   Paper,
-  TextField,
   Typography,
   IconButton,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Grid,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { db } from "../../firebase";
 import { VideoGalleryCategory } from "types/gallery";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import Confirmation from "../../utilities/Confirmation";
+import { Formik, Form, Field } from "formik";
+import { videoGallerySchema } from "./validationSchemas";
 
 const VideoGalleryContent = () => {
   const [formData, setFormData] = useState<Partial<VideoGalleryCategory>[]>([]);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    type: "video";
-    index: number;
-  } | null>(null);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newEventData, setNewEventData] = useState<
-    Partial<VideoGalleryCategory>
-  >({});
   const [error, setError] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editEventData, setEditEventData] = useState<
     Partial<VideoGalleryCategory>
   >({});
+  const [editVideosDialogOpen, setEditVideosDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   useEffect(() => {
     const getVideoGalleryData = async () => {
@@ -61,85 +56,9 @@ const VideoGalleryContent = () => {
     getVideoGalleryData();
   }, []);
 
-  const handleAddVideoEvent = () => {
-    setAddDialogOpen(true);
-  };
-
-  const handleNewEventChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setNewEventData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddNewEvent = async () => {
-    try {
-      const updatedData = [
-        ...formData,
-        {
-          ...newEventData,
-          eventId: newEventData.eventId || "",
-          eventThumbnail: newEventData.eventThumbnail || "",
-          videos: newEventData.videos || [{ videoUrl: "" }],
-        } as VideoGalleryCategory,
-      ];
-      setFormData(updatedData);
-      await saveFormData(updatedData); // Save changes to Firebase
-      setAddDialogOpen(false);
-      setNewEventData({});
-      setError(null);
-    } catch (err) {
-      console.error("Error adding new video event:", err);
-      setError("Failed to add new video event.");
-    }
-  };
-
-  const cancelAddNewEvent = () => {
-    setAddDialogOpen(false);
-    setNewEventData({});
-  };
-
-  const handleDeleteVideoEvent = (index: number) => {
-    setDeleteTarget({ type: "video", index });
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (deleteTarget) {
-      try {
-        const updatedData = formData.filter((_, i) => i !== deleteTarget.index);
-        setFormData(updatedData);
-        await saveFormData(updatedData); // Save changes to Firebase
-        setDeleteDialogOpen(false);
-        setDeleteTarget(null);
-        setError(null);
-      } catch (err) {
-        console.error("Error deleting video event:", err);
-        setError("Failed to delete video event.");
-      }
-    }
-  };
-
-  const cancelDelete = () => {
-    setDeleteDialogOpen(false);
-    setDeleteTarget(null);
-  };
-
-  const saveFormData = async (data: Partial<VideoGalleryCategory>[]) => {
-    try {
-      await db
-        .collection("WEBSITE_CONFIG")
-        .doc("videoGallary")
-        .set({ events: data });
-    } catch (err) {
-      console.error("Error saving video gallery data:", err);
-      setError("Failed to save video gallery data.");
-    }
-  };
-
-  const handleEditDialogOpen = (index: number) => {
+  const handleRowClick = (index: number) => {
     setEditEventData(formData[index]);
-    setEditDialogOpen(true);
+    setEditVideosDialogOpen(true);
   };
 
   const handleEditDialogClose = () => {
@@ -147,37 +66,55 @@ const VideoGalleryContent = () => {
     setEditEventData({});
   };
 
-  const handleEditEventChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    videoIndex?: number
-  ) => {
-    const { name, value } = e.target;
-    setEditEventData((prev) => {
-      if (videoIndex !== undefined) {
-        const updatedVideos = [...(prev.videos || [])];
-        updatedVideos[videoIndex] = {
-          ...updatedVideos[videoIndex],
-          videoUrl: value,
-        };
-        return { ...prev, videos: updatedVideos };
-      }
-      return { ...prev, [name]: value };
-    });
+  const handleEditVideosDialogClose = () => {
+    setEditVideosDialogOpen(false);
+    setEditEventData({});
   };
 
-  const handleSaveEditEvent = async () => {
+  const handleAddDialogClose = () => {
+    setAddDialogOpen(false);
+  };
+
+  const handleSaveEditEvent = async (values: Partial<VideoGalleryCategory>) => {
     try {
       const updatedData = formData.map((event) =>
-        event.eventId === editEventData.eventId ? editEventData : event
+        event.eventId === values.eventId ? values : event
       );
       setFormData(updatedData);
-      await saveFormData(updatedData); // Save changes to Firebase
+      await db
+        .collection("WEBSITE_CONFIG")
+        .doc("videoGallary")
+        .set({ events: updatedData }); // Save changes to Firebase
       setEditDialogOpen(false);
       setEditEventData({});
       setError(null);
     } catch (err) {
       console.error("Error saving edited event:", err);
       setError("Failed to save edited event.");
+    }
+  };
+
+  const handleAddNewEvent = async (values: Partial<VideoGalleryCategory>) => {
+    try {
+      const updatedData = [
+        ...formData,
+        {
+          ...values,
+          eventId: values.eventId || "",
+          eventThumbnail: values.eventThumbnail || "",
+          videos: values.videos || [{ videoUrl: "" }],
+        } as VideoGalleryCategory,
+      ];
+      setFormData(updatedData);
+      await db
+        .collection("WEBSITE_CONFIG")
+        .doc("videoGallary")
+        .set({ events: updatedData });
+      setAddDialogOpen(false);
+      setError(null);
+    } catch (err) {
+      console.error("Error adding new video event:", err);
+      setError("Failed to add new video event.");
     }
   };
 
@@ -197,23 +134,26 @@ const VideoGalleryContent = () => {
     }));
   };
 
-  const handleAddVideoToNewEvent = () => {
-    setNewEventData((prev) => ({
-      ...prev,
-      videos: [...(prev.videos || []), { videoUrl: "" }],
-    }));
-  };
-
-  const handleNewEventVideoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  const handleEditEventChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     videoIndex: number
   ) => {
     const { value } = e.target;
-    setNewEventData((prev) => {
-      const updatedVideos = [...(prev.videos || [])];
-      updatedVideos[videoIndex] = { videoUrl: value };
+    setEditEventData((prev) => {
+      const updatedVideos = (prev.videos || []).map((video, index) =>
+        index === videoIndex ? { ...video, videoUrl: value } : video
+      );
       return { ...prev, videos: updatedVideos };
     });
+  };
+
+  const handleEditContentDialogOpen = (index: number) => {
+    setEditEventData(formData[index]);
+    setEditDialogOpen(true);
+  };
+
+  const handleAddVideoEvent = () => {
+    setAddDialogOpen(true);
   };
 
   return (
@@ -234,15 +174,17 @@ const VideoGalleryContent = () => {
           </Typography>
         )}
 
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddVideoEvent}
-          sx={{ mb: 2 }}
-        >
-          Add Video Event
-        </Button>
+        <Grid container spacing={2} justifyContent="flex-end">
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddVideoEvent}
+            sx={{ mb: 2 }}
+          >
+            Add Video Event
+          </Button>
+        </Grid>
 
         <TableContainer component={Paper}>
           <Table>
@@ -258,7 +200,11 @@ const VideoGalleryContent = () => {
             </TableHead>
             <TableBody>
               {formData.map((video, index) => (
-                <TableRow key={index}>
+                <TableRow
+                  key={index}
+                  onClick={() => handleRowClick(index)}
+                  style={{ cursor: "pointer" }}
+                >
                   <TableCell>{video.eventId}</TableCell>
                   <TableCell>{video.eventTitle}</TableCell>
                   <TableCell>{video.eventThumbnail}</TableCell>
@@ -269,13 +215,19 @@ const VideoGalleryContent = () => {
                   <TableCell>
                     <IconButton
                       aria-label="edit"
-                      onClick={() => handleEditDialogOpen(index)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditContentDialogOpen(index);
+                      }}
                     >
                       <EditIcon color="primary" />
                     </IconButton>
                     <IconButton
                       aria-label="delete"
-                      onClick={() => handleDeleteVideoEvent(index)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // handleDeleteVideoEvent(index); // Uncomment and implement this function if needed
+                      }}
                     >
                       <DeleteIcon color="error" />
                     </IconButton>
@@ -287,6 +239,7 @@ const VideoGalleryContent = () => {
         </TableContainer>
       </Paper>
 
+      {/* Edit Event Block */}
       <Dialog
         open={editDialogOpen}
         onClose={handleEditDialogClose}
@@ -294,193 +247,229 @@ const VideoGalleryContent = () => {
       >
         <DialogTitle id="form-dialog-title">Edit Event</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="eventId"
-            label="Event ID"
-            type="text"
-            fullWidth
-            value={editEventData.eventId || ""}
-            onChange={handleEditEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventTitle"
-            label="Event Title"
-            type="text"
-            fullWidth
-            value={editEventData.eventTitle || ""}
-            onChange={handleEditEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventThumbnail"
-            label="Event Thumbnail URL"
-            type="text"
-            fullWidth
-            value={editEventData.eventThumbnail || ""}
-            onChange={handleEditEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="description"
-            label="Description"
-            type="text"
-            fullWidth
-            value={editEventData.description || ""}
-            onChange={handleEditEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventDate"
-            label="Event Date"
-            type="date"
-            fullWidth
-            InputLabelProps={{
-              shrink: true,
-            }}
-            value={editEventData.eventDate?.toString().split("T")[0] || ""}
-            onChange={handleEditEventChange}
-          />
+          <Formik
+            initialValues={editEventData}
+            validationSchema={videoGallerySchema}
+            onSubmit={handleSaveEditEvent}
+          >
+            {({ errors, touched }) => (
+              <Form>
+                <Field
+                  as={TextField}
+                  autoFocus
+                  margin="dense"
+                  name="eventId"
+                  label="Event ID"
+                  type="text"
+                  fullWidth
+                  error={touched.eventId && !!errors.eventId}
+                  helperText={touched.eventId && errors.eventId}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventTitle"
+                  label="Event Title"
+                  type="text"
+                  fullWidth
+                  error={touched.eventTitle && !!errors.eventTitle}
+                  helperText={touched.eventTitle && errors.eventTitle}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventThumbnail"
+                  label="Event Thumbnail URL"
+                  type="text"
+                  fullWidth
+                  error={touched.eventThumbnail && !!errors.eventThumbnail}
+                  helperText={touched.eventThumbnail && errors.eventThumbnail}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="description"
+                  label="Description"
+                  type="text"
+                  fullWidth
+                  error={touched.description && !!errors.description}
+                  helperText={touched.description && errors.description}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventDate"
+                  label="Event Date"
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  error={touched.eventDate && !!errors.eventDate}
+                  helperText={touched.eventDate && errors.eventDate}
+                />
+                <DialogActions>
+                  <Button onClick={handleEditDialogClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button type="submit" color="primary">
+                    Save
+                  </Button>
+                </DialogActions>
+              </Form>
+            )}
+          </Formik>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Event Videos */}
+      <Dialog
+        open={editVideosDialogOpen}
+        onClose={handleEditVideosDialogClose}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">Edit Event Videos</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} justifyContent="flex-end">
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddVideoToEdit}
+              sx={{ mt: 2, mb: 2 }}
+            >
+              Add Video
+            </Button>
+          </Grid>
           <Typography variant="h6" sx={{ mt: 2 }}>
             Videos:
           </Typography>
-          {editEventData.videos?.map((video, videoIndex) => (
-            <div
-              key={videoIndex}
-              style={{ display: "flex", alignItems: "center" }}
-            >
-              <TextField
-                margin="dense"
-                name="videoUrl"
-                label={`Video URL ${videoIndex + 1}`}
-                type="text"
-                fullWidth
-                value={video.videoUrl}
-                onChange={(e) => handleEditEventChange(e, videoIndex)}
-              />
-              <IconButton
-                aria-label="delete"
-                onClick={() => handleDeleteVideoFromEdit(videoIndex)}
-              >
-                <DeleteIcon color="error" />
-              </IconButton>
-            </div>
-          ))}
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddVideoToEdit}
-            sx={{ mt: 2 }}
-          >
-            Add Video
-          </Button>
+          <Grid container spacing={2}>
+            {editEventData.videos?.map((video, videoIndex) => (
+              <Grid item xs={12} sm={4} key={videoIndex}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <TextField
+                    margin="dense"
+                    name="videoUrl"
+                    label={`Video URL ${videoIndex + 1}`}
+                    type="text"
+                    fullWidth
+                    value={video.videoUrl}
+                    onChange={(e) => handleEditEventChange(e, videoIndex)}
+                  />
+                  <IconButton
+                    aria-label="delete"
+                    onClick={() => handleDeleteVideoFromEdit(videoIndex)}
+                  >
+                    <DeleteIcon color="error" />
+                  </IconButton>
+                </div>
+              </Grid>
+            ))}
+          </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditDialogClose} color="primary">
+          <Button onClick={handleEditVideosDialogClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleSaveEditEvent} color="primary">
+          <Button
+            onClick={() => handleSaveEditEvent(editEventData)}
+            color="primary"
+          >
             Save
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Add New Event Block */}
       <Dialog
         open={addDialogOpen}
-        onClose={cancelAddNewEvent}
+        onClose={handleAddDialogClose}
         aria-labelledby="form-dialog-title"
       >
         <DialogTitle id="form-dialog-title">Add New Event</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="eventId"
-            label="Event ID"
-            type="text"
-            fullWidth
-            onChange={handleNewEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventTitle"
-            label="Event Title"
-            type="text"
-            fullWidth
-            onChange={handleNewEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventThumbnail"
-            label="Event Thumbnail URL"
-            type="text"
-            fullWidth
-            onChange={handleNewEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="description"
-            label="Description"
-            type="text"
-            fullWidth
-            onChange={handleNewEventChange}
-          />
-          <TextField
-            margin="dense"
-            name="eventDate"
-            label="Event Date"
-            type="date"
-            fullWidth
-            InputLabelProps={{
-              shrink: true,
+          <Formik
+            initialValues={{
+              eventId: "",
+              eventTitle: "",
+              eventThumbnail: "",
+              description: "",
+              eventDate: new Date(),
+              videos: [{ videoUrl: "" }],
             }}
-            onChange={handleNewEventChange}
-          />
-          <Typography variant="h6" sx={{ mt: 2 }}>
-            Videos:
-          </Typography>
-          {newEventData.videos?.map((video, videoIndex) => (
-            <TextField
-              key={videoIndex}
-              margin="dense"
-              name="videoUrl"
-              label={`Video URL ${videoIndex + 1}`}
-              type="text"
-              fullWidth
-              value={video.videoUrl}
-              onChange={(e) => handleNewEventVideoChange(e, videoIndex)}
-            />
-          ))}
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddVideoToNewEvent}
-            sx={{ mt: 2 }}
+            validationSchema={videoGallerySchema}
+            onSubmit={handleAddNewEvent}
           >
-            Add Video
-          </Button>
+            {({ errors, touched }) => (
+              <Form>
+                <Field
+                  as={TextField}
+                  autoFocus
+                  margin="dense"
+                  name="eventId"
+                  label="Event ID"
+                  type="text"
+                  fullWidth
+                  error={touched.eventId && !!errors.eventId}
+                  helperText={touched.eventId && errors.eventId}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventTitle"
+                  label="Event Title"
+                  type="text"
+                  fullWidth
+                  error={touched.eventTitle && !!errors.eventTitle}
+                  helperText={touched.eventTitle && errors.eventTitle}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventThumbnail"
+                  label="Event Thumbnail URL"
+                  type="text"
+                  fullWidth
+                  error={touched.eventThumbnail && !!errors.eventThumbnail}
+                  helperText={touched.eventThumbnail && errors.eventThumbnail}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="description"
+                  label="Description"
+                  type="text"
+                  fullWidth
+                  error={touched.description && !!errors.description}
+                  helperText={touched.description && errors.description}
+                />
+                <Field
+                  as={TextField}
+                  margin="dense"
+                  name="eventDate"
+                  label="Event Date"
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  error={touched.eventDate && !!errors.eventDate}
+                  helperText={touched.eventDate && errors.eventDate}
+                />
+                <DialogActions>
+                  <Button onClick={handleAddDialogClose} color="primary">
+                    Cancel
+                  </Button>
+                  <Button type="submit" color="primary">
+                    Add
+                  </Button>
+                </DialogActions>
+              </Form>
+            )}
+          </Formik>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={cancelAddNewEvent} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleAddNewEvent} color="primary">
-            Add
-          </Button>
-        </DialogActions>
       </Dialog>
-
-      <Confirmation
-        open={deleteDialogOpen}
-        onClose={cancelDelete}
-        onConfirm={confirmDelete}
-        title="Confirm Delete"
-        description="Are you sure you want to delete this event? This action cannot be undone."
-      />
     </div>
   );
 };
