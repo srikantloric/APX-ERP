@@ -180,7 +180,7 @@ const VideoGalleryContent = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={handleAddVideoEvent}
-            sx={{ mb: 2 }}
+            sx={{ my: 2 }}
           >
             Add Video Event
           </Button>

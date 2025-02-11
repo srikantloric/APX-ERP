@@ -180,7 +180,7 @@ const PhotoGalleryContent = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={handleAddPhotoEvent}
-            sx={{ mb: 2 }}
+            sx={{ my: 2 }}
           >
             Add Photo Event
           </Button>
