@@ -327,6 +327,11 @@ const PhotoGalleryContent = () => {
         aria-labelledby="form-dialog-title"
       >
         <DialogTitle id="form-dialog-title">Edit Event Images</DialogTitle>
+
+        <Grid container spacing={2} sx={{ my: 2 }}>
+          Event Id: {editEventData.eventId}
+        </Grid>
+
         <DialogContent>
           <Grid container spacing={2} justifyContent="flex-end">
             <Button
