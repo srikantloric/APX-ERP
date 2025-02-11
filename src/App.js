@@ -1,43 +1,52 @@
 import { Route, Routes } from "react-router-dom";
+import { Suspense } from "react";
 import "./App.css";
 import Login from "./pages/Login/Login";
 import { routesConfig } from "./components/Utils/RoutesConfig";
 import { useState, lazy, useEffect } from "react";
 import SideBarContext from "./context/SidebarContext";
-
-//Layouts
-import AuthenticationLayout from "./layouts/AuthenticationLayout";
-import DashboardLayout from "./layouts/DashboardLayout";
-import AuthProvider from "./context/AuthContext";
-import { Suspense } from "react";
-import UpdateStudent from "./pages/Users/Update";
-import Loadable from "./components/thirdparty/Loadable";
-import FeeReceiptGenerator from "components/FeeRecieptGenerator/FeeRecieptGenerator";
-import FeeReceipt from "pages/FeeManager/FeeReceipt";
-import GenerateCustomFee from "pages/FeeManager/GenerateChallan/GenerateCustomFee";
-import GenerateMonthlyFee from "pages/FeeManager/GenerateChallan/GenerateMonthlyFee";
-import GenerateQrSticker from "pages/Attendance/GenerateQrSticker";
-import ManualAttendance from "pages/Attendance/ManualAttendance";
-import ViewAttendance from "pages/Attendance/ViewAttendance";
-import AdmissionEnquiry from "pages/Admission/AdmissionEnquiry";
-import AddEnquire from "pages/Admission/AddEnquriStudent";
-import { FacultyAttendance } from "pages/Attendance/FacultyAttendance/facultyAttendance";
-import GenerateMonthlyChallan from "pages/FeeManager/GenerateChallan/GenerateMontlyChallan";
-import ViewStudentProfile from "pages/Users/StudentProfile/ViewStudentProfile";
+import { SCHOOL_NAME } from "config/schoolConfig";
 import {
   SearchDialogProvider,
   useSearchDialog,
 } from "context/SearchDialogContext";
-import UpdateResults from "pages/ResultsManagement/UpdateResults";
-import PrintResult from "pages/ResultsManagement/PrintResult";
-import IdCardGeneration from "pages/Extras/IdCardGeneration";
-import BalanceSheet from "pages/Reports/BalanceSheet";
-import DueReport from "pages/Reports/DueReport";
-import { SCHOOL_NAME } from "config/schoolConfig";
-import DemandSlip from "pages/Reports/DemandSlip";
-import Transport from "pages/transport/Transport";
-import VehicleDetails from "pages/transport/VehicleDetails";
-import WebsiteConfig from "pages/WebsiteConfig/WebsiteConfigPage";
+
+
+// Layouts & Context
+import AuthenticationLayout from "./layouts/AuthenticationLayout";
+import DashboardLayout from "./layouts/DashboardLayout";
+import AuthProvider from "./context/AuthContext";
+
+// Utility Component for Lazy Loading
+import Loadable from "./components/thirdparty/Loadable";
+
+// Lazy Loaded Components
+
+const FeeReceiptGenerator = Loadable(lazy(() => import("components/FeeRecieptGenerator/FeeRecieptGenerator")));
+const FeeReceipt = Loadable(lazy(() => import("pages/FeeManager/FeeReceipt")));
+const GenerateCustomFee = Loadable(lazy(() => import("pages/FeeManager/GenerateChallan/GenerateCustomFee")));
+const GenerateMonthlyFee = Loadable(lazy(() => import("pages/FeeManager/GenerateChallan/GenerateMonthlyFee")));
+const GenerateQrSticker = Loadable(lazy(() => import("pages/Attendance/GenerateQrSticker")));
+const ManualAttendance = Loadable(lazy(() => import("pages/Attendance/ManualAttendance")));
+const ViewAttendance = Loadable(lazy(() => import("pages/Attendance/ViewAttendance")));
+const AdmissionEnquiry = Loadable(lazy(() => import("pages/Admission/AdmissionEnquiry")));
+// const AddEnquire = Loadable(lazy(() => import("pages/Admission/AddEnquriStudent")));
+
+const FacultyAttendance = Loadable(lazy(() => import("pages/Attendance/FacultyAttendance/facultyAttendance")));
+const GenerateMonthlyChallan = Loadable(lazy(() => import("pages/FeeManager/GenerateChallan/GenerateMontlyChallan")));
+const ViewStudentProfile = Loadable(lazy(() => import("pages/Users/StudentProfile/ViewStudentProfile")));
+
+
+const UpdateResults = Loadable(lazy(() => import("pages/ResultsManagement/UpdateResults")));
+const PrintResult = Loadable(lazy(() => import("pages/ResultsManagement/PrintResult")));
+const IdCardGeneration = Loadable(lazy(() => import("pages/Extras/IdCardGeneration")));
+const BalanceSheet = Loadable(lazy(() => import("pages/Reports/BalanceSheet")));
+const DueReport = Loadable(lazy(() => import("pages/Reports/DueReport")));
+const DemandSlip = Loadable(lazy(() => import("pages/Reports/DemandSlip")));
+const Transport = Loadable(lazy(() => import("pages/transport/Transport")));
+const VehicleDetails = Loadable(lazy(() => import("pages/transport/VehicleDetails")));
+const WebsiteConfig = Loadable(lazy(() => import("pages/WebsiteConfig/WebsiteConfigPage")));
+const AddStudentNew = Loadable(lazy(() => import("pages/Users/AddStudentNew")));
 
 const StudentProfilePictureUpdater = Loadable(
   lazy(() => import("pages/ProfileUpdater/StudentProfilePictureUpdater"))
@@ -53,7 +62,7 @@ const FacultyDetail = Loadable(
 const StudentFeeDetails = Loadable(
   lazy(() => import("./pages/FeeManager/StudentFeeDetails"))
 );
-const AddStudent = Loadable(lazy(() => import("./pages/Users/AddStudent")));
+
 
 function App() {
   const routeItems = routesConfig.map(
@@ -86,15 +95,12 @@ function App() {
             <Routes>
               <Route path="/" element={<DashboardLayout />}>
                 {routeItems}
-                <Route path="students/add-students" element={<AddStudent />} />
-                <Route
-                  path="students/update-student/:id"
-                  element={<UpdateStudent />}
-                />
-                <Route
+                <Route path="students/add-students" element={<AddStudentNew />} />
+
+                {/* <Route
                   path="students/Admission-students/add-students/:id"
                   element={<AddEnquire />}
-                />
+                /> */}
                 <Route
                   path="students/Admission-students"
                   element={<AdmissionEnquiry />}

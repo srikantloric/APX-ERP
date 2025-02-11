@@ -21,7 +21,6 @@ function VehicleDetails() {
         <Tabs aria-label="Basic tabs" defaultValue={0}>
           <TabList>
             <Tab>Add Vehicle/Vehicle Data</Tab>
-
           </TabList>
           <TabPanel value={0}>
             <Tab1 />

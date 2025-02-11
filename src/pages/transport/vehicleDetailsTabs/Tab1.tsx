@@ -5,28 +5,13 @@ import AddVehicleModal from "components/Modals/transport/AddVehicleModal";
 import { db } from "../../../firebase";
 import { useEffect, useState } from "react";
 import EditVehicleDetail from "components/Modals/transport/EditVehicleDetail";
+import { TransportVehicleType } from "types/transport";
 
-type SerialNumber = {
-  serialNo?: number;
-};
-type TransportData = SerialNumber & {
-  vehicleName: string;
-
-  driverName: string;
-  conductorName: string;
-  registerNumber: string;
-  totalSeat: string;
-  licenseDate: string;
-  rcDate: string;
-
-  insuranceDate: string;
-  pollutionDate: string;
-};
 
 function Tab1() {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
-  const [transportVehicle, setTransportVehicle] = useState<TransportData[]>([]);
-  const [selectedVechile, setSelectedVehicle] = useState<TransportData | null>(null)
+  const [transportVehicles, setTransportVehicles] = useState<TransportVehicleType[]>([]);
+  const [selectedVechile, setSelectedVehicle] = useState<TransportVehicleType | null>(null)
 
 
   const handleAddVehicleModalClose = () => {
@@ -35,7 +20,8 @@ function Tab1() {
 
   const columnMat = [
     { title: "Name", field: "vehicleName" },
-    { title: "Vehicle Number", field: "registerNumber" },
+    { title: "Vehicle Number", field: "registrationNumber" },
+    { title: "Vehicle Contact", field: "vehicleContact" },
     { title: "Driver", field: "driverName" },
     { title: "Conductor", field: "conductorName" },
     { title: "Total Seat", field: "totalSeat" },
@@ -43,24 +29,23 @@ function Tab1() {
     { title: "Available Seat", field: "monthlyCharge" },
   ];
 
- 
-  const fetchTransportData = async () => {
+
+  const fetchVehicleData = async () => {
+    setTransportVehicles([]);
     const transportRef = db.collection("TRANSPORT").doc("transportLocations");
     const doc = await transportRef.get();
     if (doc.exists) {
       const data = doc.data();
       if (data) {
-        console.log(data.vehicle);
-        setTransportVehicle(data.vehicle);
+        setTransportVehicles(data.vehicles);
       } else {
-        setTransportVehicle([]);
+        setTransportVehicles([]);
         console.log("No such document!");
       }
     }
   };
   useEffect(() => {
-    fetchTransportData();
-    console.log(transportVehicle);
+    fetchVehicleData();
   }, []);
 
   return (
@@ -82,7 +67,7 @@ function Tab1() {
             display: "grid",
           }}
           columns={columnMat}
-          data={transportVehicle}
+          data={transportVehicles}
           title="Vehicle List"
           options={{
             // grouping: true,
@@ -99,9 +84,8 @@ function Tab1() {
             {
               icon: () => <Edit sx={{ color: "var(--bs-primary)" }} />,
               tooltip: "Edit Row",
-              
               onClick: (event, rowData) => {
-                setSelectedVehicle(rowData as TransportData);
+                setSelectedVehicle(rowData as TransportVehicleType);
                 setIsAddVehicleModalOpen(true)
               },
             },
@@ -111,16 +95,15 @@ function Tab1() {
       <AddVehicleModal
         open={isAddVehicleModalOpen}
         onClose={handleAddVehicleModalClose}
+        fetchVehicleData={fetchVehicleData}
       />
       {selectedVechile &&
-      <EditVehicleDetail open={isAddVehicleModalOpen}
-       onClose={handleAddVehicleModalClose} 
-       selectedVehicle={selectedVechile}
-       VehicleData={transportVehicle}
-
-
-       
-      />
+        <EditVehicleDetail open={isAddVehicleModalOpen}
+          onClose={handleAddVehicleModalClose}
+          selectedVehicle={selectedVechile}
+          fetchVehicleData={fetchVehicleData}
+          vehicleData={transportVehicles}
+        />
       }
     </>
   );
