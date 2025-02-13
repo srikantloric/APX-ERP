@@ -161,3 +161,11 @@ export const CASTES = [
   { title: "Other", value: "Other" },
 ];
 
+
+export const SCHOOL_SESSIONS = [
+  { title: "2021", value: "2022" },
+  { title: "2023", value: "2024" },
+  { title: "2024", value: "2025" },
+  { title: "2025", value: "2026" },
+  { title: "2026", value: "2027" },
+]

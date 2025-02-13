@@ -11,7 +11,6 @@ import {
   useSearchDialog,
 } from "context/SearchDialogContext";
 
-
 // Layouts & Context
 import AuthenticationLayout from "./layouts/AuthenticationLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -19,33 +18,63 @@ import AuthProvider from "./context/AuthContext";
 
 // Utility Component for Lazy Loading
 import Loadable from "./components/thirdparty/Loadable";
+import AdmitCard from "pages/Reports/AdmitCard";
 
 // Lazy Loaded Components
 
-const FeeReceiptGenerator = Loadable(lazy(() => import("components/FeeRecieptGenerator/FeeRecieptGenerator")));
+const FeeReceiptGenerator = Loadable(
+  lazy(() => import("components/FeeRecieptGenerator/FeeRecieptGenerator"))
+);
 const FeeReceipt = Loadable(lazy(() => import("pages/FeeManager/FeeReceipt")));
-const GenerateCustomFee = Loadable(lazy(() => import("pages/FeeManager/GenerateChallan/GenerateCustomFee")));
-const GenerateMonthlyFee = Loadable(lazy(() => import("pages/FeeManager/GenerateChallan/GenerateMonthlyFee")));
-const GenerateQrSticker = Loadable(lazy(() => import("pages/Attendance/GenerateQrSticker")));
-const ManualAttendance = Loadable(lazy(() => import("pages/Attendance/ManualAttendance")));
-const ViewAttendance = Loadable(lazy(() => import("pages/Attendance/ViewAttendance")));
-const AdmissionEnquiry = Loadable(lazy(() => import("pages/Admission/AdmissionEnquiry")));
+const GenerateCustomFee = Loadable(
+  lazy(() => import("pages/FeeManager/GenerateChallan/GenerateCustomFee"))
+);
+const GenerateMonthlyFee = Loadable(
+  lazy(() => import("pages/FeeManager/GenerateChallan/GenerateMonthlyFee"))
+);
+const GenerateQrSticker = Loadable(
+  lazy(() => import("pages/Attendance/GenerateQrSticker"))
+);
+const ManualAttendance = Loadable(
+  lazy(() => import("pages/Attendance/ManualAttendance"))
+);
+const ViewAttendance = Loadable(
+  lazy(() => import("pages/Attendance/ViewAttendance"))
+);
+const AdmissionEnquiry = Loadable(
+  lazy(() => import("pages/Admission/AdmissionEnquiry"))
+);
 // const AddEnquire = Loadable(lazy(() => import("pages/Admission/AddEnquriStudent")));
 
-const FacultyAttendance = Loadable(lazy(() => import("pages/Attendance/FacultyAttendance/facultyAttendance")));
-const GenerateMonthlyChallan = Loadable(lazy(() => import("pages/FeeManager/GenerateChallan/GenerateMontlyChallan")));
-const ViewStudentProfile = Loadable(lazy(() => import("pages/Users/StudentProfile/ViewStudentProfile")));
+const FacultyAttendance = Loadable(
+  lazy(() => import("pages/Attendance/FacultyAttendance/facultyAttendance"))
+);
+const GenerateMonthlyChallan = Loadable(
+  lazy(() => import("pages/FeeManager/GenerateChallan/GenerateMontlyChallan"))
+);
+const ViewStudentProfile = Loadable(
+  lazy(() => import("pages/Users/StudentProfile/ViewStudentProfile"))
+);
 
-
-const UpdateResults = Loadable(lazy(() => import("pages/ResultsManagement/UpdateResults")));
-const PrintResult = Loadable(lazy(() => import("pages/ResultsManagement/PrintResult")));
-const IdCardGeneration = Loadable(lazy(() => import("pages/Extras/IdCardGeneration")));
+const UpdateResults = Loadable(
+  lazy(() => import("pages/ResultsManagement/UpdateResults"))
+);
+const PrintResult = Loadable(
+  lazy(() => import("pages/ResultsManagement/PrintResult"))
+);
+const IdCardGeneration = Loadable(
+  lazy(() => import("pages/Extras/IdCardGeneration"))
+);
 const BalanceSheet = Loadable(lazy(() => import("pages/Reports/BalanceSheet")));
 const DueReport = Loadable(lazy(() => import("pages/Reports/DueReport")));
 const DemandSlip = Loadable(lazy(() => import("pages/Reports/DemandSlip")));
 const Transport = Loadable(lazy(() => import("pages/transport/Transport")));
-const VehicleDetails = Loadable(lazy(() => import("pages/transport/VehicleDetails")));
-const WebsiteConfig = Loadable(lazy(() => import("pages/WebsiteConfig/WebsiteConfigPage")));
+const VehicleDetails = Loadable(
+  lazy(() => import("pages/transport/VehicleDetails"))
+);
+const WebsiteConfig = Loadable(
+  lazy(() => import("pages/WebsiteConfig/WebsiteConfigPage"))
+);
 const AddStudentNew = Loadable(lazy(() => import("pages/Users/AddStudentNew")));
 
 const StudentProfilePictureUpdater = Loadable(
@@ -62,7 +91,6 @@ const FacultyDetail = Loadable(
 const StudentFeeDetails = Loadable(
   lazy(() => import("./pages/FeeManager/StudentFeeDetails"))
 );
-
 
 function App() {
   const routeItems = routesConfig.map(
@@ -95,7 +123,10 @@ function App() {
             <Routes>
               <Route path="/" element={<DashboardLayout />}>
                 {routeItems}
-                <Route path="students/add-students" element={<AddStudentNew />} />
+                <Route
+                  path="students/add-students"
+                  element={<AddStudentNew />}
+                />
 
                 {/* <Route
                   path="students/Admission-students/add-students/:id"
@@ -166,6 +197,8 @@ function App() {
 
                 <Route path="/reports/due-report" element={<DueReport />} />
                 <Route path="/reports/demand-slip" element={<DemandSlip />} />
+                <Route path="/reports/admit-card" element={<AdmitCard />} />
+
                 {"Transport"}
                 <Route
                   path="/transport/transport-location"
