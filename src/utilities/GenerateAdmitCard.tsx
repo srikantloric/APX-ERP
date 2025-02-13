@@ -36,7 +36,7 @@ export const generateAdmitCard = async (data: admitCardType[]) => {
 
     // School Header
     const logoImg = new Image();
-    logoImg.src = "/path/to/logo.png"; // Update with the correct path to the logo
+    logoImg.src = "/path/to/logo.png";
     // doc.addImage(logoImg, "PNG", margin + 10, positionY + 10, 20, 20); // Adjust the position and size as needed
 
     doc.setFont("Poppins", "bold");
