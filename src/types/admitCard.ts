@@ -17,6 +17,7 @@ export interface admitCardType {
     fatherName: string;
     studentDOB: string;
     studentMob: string;
+    profile_url: string;
     examTitle: string;
     session: string;
     startTime: string;

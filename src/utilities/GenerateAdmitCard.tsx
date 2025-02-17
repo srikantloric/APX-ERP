@@ -1,7 +1,12 @@
 import jsPDF from "jspdf";
 import { admitCardType } from "types/admitCard";
-import { SCHOOL_NAME, SCHOOL_ADDRESS } from "config/schoolConfig";
+import {
+  SCHOOL_NAME,
+  SCHOOL_ADDRESS,
+  SCHOOL_WEBSITE,
+} from "config/schoolConfig";
 import { POPPINS_BOLD, POPPINS_REGULAR, POPPINS_SEMIBOLD } from "./Base64Url";
+import { format } from "date-fns";
 
 export const generateAdmitCard = async (data: admitCardType[]) => {
   const doc = new jsPDF({
@@ -36,96 +41,106 @@ export const generateAdmitCard = async (data: admitCardType[]) => {
 
     // School Header
     const logoImg = new Image();
-    logoImg.src = "/path/to/logo.png";
-    // doc.addImage(logoImg, "PNG", margin + 10, positionY + 10, 20, 20); // Adjust the position and size as needed
+    logoImg.src = "/path/to/logo.png"; // Update with the correct path to the logo
+    doc.addImage(logoImg, "PNG", margin + 10, positionY + 10, 20, 20); // Adjust the position and size as needed
 
     doc.setFont("Poppins", "bold");
-    doc.setFontSize(18);
-    doc.text(SCHOOL_NAME, 105, positionY + 5, { align: "center" });
+    doc.setFontSize(19);
+    doc.text(SCHOOL_NAME, 105, positionY + 4, { align: "center" });
 
     doc.setFont("Poppins", "normal");
-    doc.setFontSize(12);
-    doc.text(SCHOOL_ADDRESS, 105, positionY + 10, { align: "center" });
+    doc.setFontSize(10);
+    doc.text(`${SCHOOL_ADDRESS} | ${SCHOOL_WEBSITE}`, 105, positionY + 11, {
+      align: "center",
+    });
 
     // Admit Card Title with Exam Title and Session
     doc.setFillColor(0, 0, 0);
-    doc.rect(margin, positionY + 15, 210 - 2 * margin, 10, "F");
+    doc.rect(margin, positionY + 12, 210 - 2 * margin, 6, "F");
     doc.setFont("Poppins", "semibold");
-    doc.setFontSize(16);
+    doc.setFontSize(14);
     doc.setTextColor(255, 255, 255);
     doc.text(
       `ADMIT CARD || ${studentData.examTitle} || Session: ${studentData.session}`,
       105,
-      positionY + 23,
+      positionY + 17,
       { align: "center" }
     );
     doc.setTextColor(0, 0, 0);
 
+    // Student Image
+    const studentImg = new Image();
+    studentImg.src = studentData.profile_url;
+    doc.addImage(studentImg, "PNG", margin + 10, positionY + 32, 35, 45); // Passport size relative to A4
+    doc.rect(margin + 10, positionY + 32, 35, 45);
+
     // Student Details
     doc.setFont("Poppins", "normal");
-    doc.setFontSize(12);
-    let studentDetailsX = margin + 20;
-    let timeTableX = 120; // Starting X position for the time table
+    doc.setFontSize(10);
+    let studentDetailsX = margin + 50;
+    let timeTableX = 105; // Starting X position for the time table
 
     doc.text(
       `Name: ${studentData.studentName}`,
       studentDetailsX,
-      positionY + 35
+      positionY + 32
     );
     doc.text(
       `Class: ${studentData.className}`,
       studentDetailsX,
-      positionY + 40
+      positionY + 37
     );
     doc.text(
       `Roll Number: ${studentData.rollNumber}`,
       studentDetailsX,
-      positionY + 45
+      positionY + 42
     );
 
     // Exam Details
-    doc.text(`Exam: ${studentData.examTitle}`, studentDetailsX, positionY + 50);
+    doc.text(`Exam: ${studentData.examTitle}`, studentDetailsX, positionY + 47);
     doc.text(
       `Session: ${studentData.session}`,
       studentDetailsX,
-      positionY + 55
+      positionY + 52
     );
     doc.text(
       `Start Time: ${studentData.startTime}`,
       studentDetailsX,
-      positionY + 60
+      positionY + 57
     );
     doc.text(
       `End Time: ${studentData.endTime}`,
       studentDetailsX,
-      positionY + 65
+      positionY + 62
     );
 
     // Time Table
-    doc.setFont("Poppins", "normal");
-    doc.setFontSize(12);
-    let startY = positionY + 70;
+    doc.setFont("Poppins", "semibold");
+    doc.setFontSize(10);
+    let startY = positionY + 32;
 
     // Table Headers
-    doc.text("Date", timeTableX, startY);
-    doc.text("First Meeting", timeTableX + 40, startY);
-    doc.text("Second Meeting", timeTableX + 100, startY);
+    doc.text("Date", timeTableX, startY, { align: "center" });
+    doc.text("1st Meeting", timeTableX + 30, startY, { align: "center" });
+    doc.text("2nd Meeting", timeTableX + 70, startY, { align: "center" });
 
     // Table Rows
     studentData.timeTabel.forEach((item, index) => {
       const rowY = startY + (index + 1) * 8;
       const fillColor = index % 2 === 0 ? "#ccffcc" : "#ffffcc"; // Light green and light yellow
       doc.setFillColor(fillColor);
-      doc.rect(timeTableX - 2, rowY - 6, 150, 8, "F");
-      doc.text(item.date.toDateString(), timeTableX, rowY);
-      doc.text(item.firstMeeting, timeTableX + 40, rowY);
-      doc.text(item.secondMeeting, timeTableX + 100, rowY);
+      doc.rect(timeTableX - 2, rowY - 6, 100, 8, "F");
+      doc.text(format(item.date, "dd MMM yyyy"), timeTableX, rowY, {
+        align: "center",
+      });
+      doc.text(item.firstMeeting, timeTableX + 30, rowY, { align: "center" });
+      doc.text(item.secondMeeting, timeTableX + 70, rowY, { align: "center" });
     });
 
     // Signatures
-    const signatureY = positionY + 110;
+    const signatureY = positionY + cardHeight - 20;
     doc.setFont("Poppins", "normal");
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.text("Exam Controller", margin + 20, signatureY);
     doc.text("Class Teacher", 85, signatureY);
     doc.text("Director", 150, signatureY);
