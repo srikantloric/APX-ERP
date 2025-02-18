@@ -24,6 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import { Formik, Form, Field } from "formik";
 import { videoGallerySchema } from "./validationSchemas";
+import Confirmation from "../../utilities/Confirmation";
 
 const VideoGalleryContent = () => {
   const [formData, setFormData] = useState<Partial<VideoGalleryCategory>[]>([]);
@@ -34,6 +35,8 @@ const VideoGalleryContent = () => {
   >({});
   const [editVideosDialogOpen, setEditVideosDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteEventIndex, setDeleteEventIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const getVideoGalleryData = async () => {
@@ -156,6 +159,37 @@ const VideoGalleryContent = () => {
     setAddDialogOpen(true);
   };
 
+  const handleDeleteEvent = async () => {
+    if (deleteEventIndex !== null) {
+      try {
+        const updatedData = formData.filter(
+          (_, index) => index !== deleteEventIndex
+        );
+        setFormData(updatedData);
+        await db
+          .collection("WEBSITE_CONFIG")
+          .doc("videoGallary")
+          .set({ events: updatedData });
+        setDeleteDialogOpen(false);
+        setDeleteEventIndex(null);
+        setError(null);
+      } catch (err) {
+        console.error("Error deleting event:", err);
+        setError("Failed to delete event.");
+      }
+    }
+  };
+
+  const handleDeleteDialogOpen = (index: number) => {
+    setDeleteEventIndex(index);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialogOpen(false);
+    setDeleteEventIndex(null);
+  };
+
   return (
     <div>
       <Typography variant="h4">Video Gallery</Typography>
@@ -226,7 +260,7 @@ const VideoGalleryContent = () => {
                       aria-label="delete"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // handleDeleteVideoEvent(index); // Uncomment and implement this function if needed
+                        handleDeleteDialogOpen(index);
                       }}
                     >
                       <DeleteIcon color="error" />
@@ -475,6 +509,14 @@ const VideoGalleryContent = () => {
           </Formik>
         </DialogContent>
       </Dialog>
+
+      <Confirmation
+        open={deleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        onConfirm={handleDeleteEvent}
+        title="Delete Event"
+        description="Are you sure you want to delete this event?"
+      />
     </div>
   );
 };

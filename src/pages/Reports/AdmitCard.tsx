@@ -48,7 +48,7 @@ const AdmitCard = () => {
             student.class !== null
               ? getClassNameByValue(student.class) || "Unknown"
               : "Unknown",
-          profile_url: student.profil_url, // Add profile_url
+          profile_url: student.profil_url,
           timeTabel: [
             {
               date: new Date(),

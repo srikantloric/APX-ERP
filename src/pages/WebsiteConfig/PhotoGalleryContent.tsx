@@ -24,6 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import { Formik, Form, Field } from "formik";
 import { photoGallerySchema } from "./validationSchemas";
+import Confirmation from "../../utilities/Confirmation";
 
 const PhotoGalleryContent = () => {
   const [formData, setFormData] = useState<Partial<PhotoGalleryCategory>[]>([]);
@@ -34,6 +35,8 @@ const PhotoGalleryContent = () => {
   >({});
   const [editImagesDialogOpen, setEditImagesDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteEventIndex, setDeleteEventIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const getPhotoGalleryData = async () => {
@@ -156,6 +159,37 @@ const PhotoGalleryContent = () => {
     setAddDialogOpen(true);
   };
 
+  const handleDeleteEvent = async () => {
+    if (deleteEventIndex !== null) {
+      try {
+        const updatedData = formData.filter(
+          (_, index) => index !== deleteEventIndex
+        );
+        setFormData(updatedData);
+        await db
+          .collection("WEBSITE_CONFIG")
+          .doc("photoGallary")
+          .set({ events: updatedData });
+        setDeleteDialogOpen(false);
+        setDeleteEventIndex(null);
+        setError(null);
+      } catch (err) {
+        console.error("Error deleting event:", err);
+        setError("Failed to delete event.");
+      }
+    }
+  };
+
+  const handleDeleteDialogOpen = (index: number) => {
+    setDeleteEventIndex(index);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialogOpen(false);
+    setDeleteEventIndex(null);
+  };
+
   return (
     <div>
       <Typography variant="h4">Photo Gallery</Typography>
@@ -226,7 +260,7 @@ const PhotoGalleryContent = () => {
                       aria-label="delete"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // handleDeletePhotoEvent(index); // Uncomment and implement this function if needed
+                        handleDeleteDialogOpen(index);
                       }}
                     >
                       <DeleteIcon color="error" />
@@ -473,6 +507,14 @@ const PhotoGalleryContent = () => {
           </Formik>
         </DialogContent>
       </Dialog>
+
+      <Confirmation
+        open={deleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        onConfirm={handleDeleteEvent}
+        title="Delete Event"
+        description="Are you sure you want to delete this event?"
+      />
     </div>
   );
 };
