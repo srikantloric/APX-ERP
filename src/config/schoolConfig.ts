@@ -2,6 +2,7 @@ export const SCHOOL_NAME = "Apex International School"
 export const SCHOOL_ADDRESS = "At-Golhaiya (Choura), Jamua, Giridih, Jharkhand - 815312"
 export const SCHOOL_CONTACT = "+91-7070829020, +91-8084216804"
 export const SCHOOL_EMAIL = "contact@apxschool.org"
+export const SCHOOL_WEBSITE = "https://apxschool.org"
 export const SCHOOL_ACCOUNTANT = 'Ajay Verma'
 
 
@@ -162,3 +163,11 @@ export const CASTES = [
   { title: "Other", value: "Other" },
 ];
 
+
+export const SCHOOL_SESSIONS = [
+  { title: "2021", value: "2022" },
+  { title: "2023", value: "2024" },
+  { title: "2024", value: "2025" },
+  { title: "2025", value: "2026" },
+  { title: "2026", value: "2027" },
+]
