@@ -158,7 +158,7 @@ function ViewStudents() {
 
   const navigate = useNavigate();
   const updatestudent = (student) => {
-    navigate(`/students/update-student/${student.id}`);
+    navigate(`/students/profile/${student.id}`);
   };
 
   const handleNewWindowOpen = async () => {
@@ -466,25 +466,20 @@ function ViewStudents() {
           transformOrigin={{ horizontal: "right", vertical: "top" }}
           anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         >
-          <MenuItem onClick={() => setStudentProfileModalOpen(true)}>
+          <MenuItem onClick={() => updatestudent(selectedRowData)}>
             <ListItemIcon>
               <PersonIcon fontSize="small" />
             </ListItemIcon>
-            View Quick Profile
+            View Profile
           </MenuItem>
-          <Divider />
+          {/* <Divider /> */}
+       
           {/* <MenuItem onClick={handleMenuClick}>
-            <ListItemIcon>
-              <BadgeIcon fontSize="small" />
-            </ListItemIcon>
-            Generate ID Card
-          </MenuItem> */}
-          <MenuItem onClick={handleMenuClick}>
             <ListItemIcon>
               <BlockIcon fontSize="small" />
             </ListItemIcon>
             Suspend User
-          </MenuItem>
+          </MenuItem> */}
         </Menu>
         {selectedRowData && studentProfileDetailsModalOpen ? (
           <StudentProfileDetailsModal

@@ -140,7 +140,7 @@ const PersonalTab: React.FC<StudentProfileProps> = ({ studentData }) => {
     formState: { errors },
   } = useForm<UpdateFormFields>({
     resolver: zodResolver(schema),
-    mode:"all",
+    mode: "all",
     defaultValues: {
       aadhar_number: studentData.aadhar_number,
       address: studentData.address,
@@ -176,24 +176,22 @@ const PersonalTab: React.FC<StudentProfileProps> = ({ studentData }) => {
 
   const onSubmit = async (updatedData: UpdateFormFields) => {
     if (studentData) {
-      setIsUpdating(true);
-      updatedData["updated_at"] = firebase.firestore.Timestamp.now();
-      db.collection("STUDENTS")
-        .doc(studentData.id)
-        .update(updatedData)
-        .then(() => {
-          enqueueSnackbar("Profile updated successfully!", {
-            variant: "success",
-          });
-          setIsUpdating(false);
-          setPaymentDetailsChangeBlocked(true);
-        })
-        .catch(() => {
-          enqueueSnackbar("Something went wrong while updating data!", {
-            variant: "error",
-          });
-          setIsUpdating(false);
-        });
+      try {
+        setIsUpdating(true);
+        if(!updatedData.profil_url){
+          updatedData["profil_url"] = "https://firebasestorage.googleapis.com/v0/b/apx-international-dev.firebasestorage.app/o/images%2F360_F_542361185_VFRJWpR2FH5OiAEVveWO7oZnfSccZfD3.jpg?alt=media&token=db86876d-97cc-4bd9-9694-75a6fe70107f"
+        }
+        updatedData["updated_at"] = firebase.firestore.Timestamp.now();
+        await db.collection("STUDENTS").doc(studentData.id).update(updatedData);
+        console.log("Update successful!");
+        enqueueSnackbar("Profile updated successfully!", { variant: "success" });
+        setPaymentDetailsChangeBlocked(true);
+      } catch (err) {
+        console.error("Firestore Update Error:", err);
+        enqueueSnackbar("Something went wrong while updating data!", { variant: "error" });
+      } finally {
+        setIsUpdating(false);
+      }
     } else {
       enqueueSnackbar("Unable to update!", { variant: "error" });
     }

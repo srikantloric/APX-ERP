@@ -132,6 +132,7 @@ export const SCHOOL_GENDERS = [
 ]
 
 export const BLOOD_GROUPS = [
+  { title: "N/A", value: "NA" },
   { title: "A+", value: "A+" },
   { title: "A-", value: "A-" },
   { title: "B+", value: "B+" },
