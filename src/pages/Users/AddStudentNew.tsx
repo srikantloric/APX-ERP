@@ -66,11 +66,11 @@ const FormValidationSchema = Yup.object().shape({
     blood_group: Yup.string().required("required"),
     religion: Yup.string().required("requird"),
     cate: Yup.string().optional(),
-    aadhar_number: Yup.string().required("required").min(12, "Exactly 12 digit accepted").max(12,
+    aadhar_number: Yup.string().min(12, "Exactly 12 digit accepted").max(12,
         "Exactly 12 digit accepted"
     ),
     father_name: Yup.string().required("required"),
-    father_occupation: Yup.string().required("required"),
+    father_occupation: Yup.string(),
     father_qualification: Yup.string().optional(),
     mother_name: Yup.string().required("required"),
     mother_occupation: Yup.string().optional(),
