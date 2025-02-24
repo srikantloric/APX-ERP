@@ -71,7 +71,7 @@ const schema = z.object({
       }
     ),
   blood_group: z.string().min(1, "Blood Group is required!"),
-  cast: z.string(),
+  caste: z.string(),
   city: z.string().min(1, "City is required!"),
   class: z.number().min(1, "Class is required!"),
   class_roll: z.string().min(1),
@@ -146,7 +146,7 @@ const PersonalTab: React.FC<StudentProfileProps> = ({ studentData }) => {
       address: studentData.address,
       alternate_number: studentData.alternate_number!,
       blood_group: studentData.blood_group,
-      cast: studentData.cast,
+      caste: studentData.caste,
       city: studentData.city,
       class: studentData.class!,
       class_roll: studentData.class_roll!,
@@ -338,11 +338,11 @@ const PersonalTab: React.FC<StudentProfileProps> = ({ studentData }) => {
                   <FormLabel>Cast</FormLabel>
                   <Input
                     type="text"
-                    {...register("cast")}
-                    error={errors.cast ? true : false}
+                    {...register("caste")}
+                    error={errors.caste ? true : false}
                   />
                   <FormHelperText>
-                    {errors.cast && errors.cast.message}
+                    {errors.caste && errors.caste.message}
                   </FormHelperText>
                 </FormControl>
               </Grid>

@@ -184,7 +184,7 @@ function Navbar() {
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
             <MenuItem onClick={handleClose}>
-              <Avatar /> admin@ops.com
+              <Avatar /> admin@apxschool.org
             </MenuItem>
 
             <Divider />

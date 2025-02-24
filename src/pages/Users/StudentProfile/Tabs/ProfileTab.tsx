@@ -136,43 +136,43 @@ const ProfileTab:React.FC<StudentProfileProps>=({studentData}) =>{
                 <tr>
                   <td>
                     <Typography level="body-sm">Full Name</Typography>
-                    <Typography level="title-md">{studentData.student_name}</Typography>
+                    <Typography level="title-md">{studentData.student_name||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">Father Name</Typography>
-                    <Typography level="title-md">{studentData.father_name}</Typography>
+                    <Typography level="title-md">{studentData.father_name||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">Mother Name</Typography>
-                    <Typography level="title-md">{studentData.mother_name}</Typography>
+                    <Typography level="title-md">{studentData.mother_name||"N/A"}</Typography>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     <Typography level="body-sm">Gender</Typography>
-                    <Typography level="title-md">{studentData.gender}</Typography>
+                    <Typography level="title-md">{studentData.gender||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">Date Of Birth</Typography>
-                    <Typography level="title-md">{studentData.dob}</Typography>
+                    <Typography level="title-md">{studentData.dob||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">Blood Group</Typography>
-                    <Typography level="title-md">{studentData.blood_group}</Typography>
+                    <Typography level="title-md">{studentData.blood_group||"N/A"}</Typography>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     <Typography level="body-sm">Religion</Typography>
-                    <Typography level="title-md">{studentData.religion}</Typography>
+                    <Typography level="title-md">{studentData.religion||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">Cast</Typography>
-                    <Typography level="title-md">{studentData.cast}</Typography>
+                    <Typography level="title-md">{studentData.caste||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">Aadhar Number</Typography>
-                    <Typography level="title-md">{studentData.aadhar_number}</Typography>
+                    <Typography level="title-md">{studentData.aadhar_number||"N/A"}</Typography>
                   </td>
                 </tr>
                 <tr>
@@ -180,29 +180,29 @@ const ProfileTab:React.FC<StudentProfileProps>=({studentData}) =>{
                     <Typography level="body-sm">
                       Father's Qualification
                     </Typography>
-                    <Typography level="title-md">{studentData.father_qualification}</Typography>
+                    <Typography level="title-md">{studentData.father_qualification||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">Father's Occupation</Typography>
-                    <Typography level="title-md">{studentData.father_occupation}</Typography>
+                    <Typography level="title-md">{studentData.father_occupation||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">
                       Mother's Qualification
                     </Typography>
-                    <Typography level="title-md">{studentData.motherqualifiation}</Typography>
+                    <Typography level="title-md">{studentData.motherqualifiation||"N/A"}</Typography>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     <Typography level="body-sm">Father's Occupation</Typography>
-                    <Typography level="title-md">{studentData.mother_occupation}</Typography>
+                    <Typography level="title-md">{studentData.mother_occupation||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">
                       Mobile Number Alternate
                     </Typography>
-                    <Typography level="title-md">{studentData.alternate_number}</Typography>
+                    <Typography level="title-md">{studentData.alternate_number||"N/A"}</Typography>
                   </td>
                   <td></td>
                 </tr>
@@ -210,7 +210,7 @@ const ProfileTab:React.FC<StudentProfileProps>=({studentData}) =>{
                   <td colSpan={2}>
                     <Typography level="body-sm">Present Address</Typography>
                     <Typography level="title-md">
-                    {studentData.address}
+                    {studentData.address||"N/A"}
                     </Typography>
                   </td>
                   <td></td>
@@ -218,15 +218,15 @@ const ProfileTab:React.FC<StudentProfileProps>=({studentData}) =>{
                 <tr>
                   <td>
                     <Typography level="body-sm">City</Typography>
-                    <Typography level="title-md">{studentData.city}</Typography>
+                    <Typography level="title-md">{studentData.city||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">State</Typography>
-                    <Typography level="title-md">{studentData.state}</Typography>
+                    <Typography level="title-md">{studentData.state||"N/A"}</Typography>
                   </td>
                   <td>
                     <Typography level="body-sm">Pin Code</Typography>
-                    <Typography level="title-md">{studentData.postal_code}</Typography>
+                    <Typography level="title-md">{studentData.postal_code||"N/A"}</Typography>
                   </td>
                 </tr>
               </thead>

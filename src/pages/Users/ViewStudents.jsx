@@ -47,6 +47,24 @@ import ExportToExcel from "components/Reports/ExportToExcel";
 import { Avatar } from "@mui/joy";
 import { deleltedata, fetchstudent } from "store/reducers/studentSlice";
 
+
+const classLookup = {
+  1: "Nursery",
+  2: "LKG",
+  3: "UKG",
+  4: "STD-1",
+  5: "STD-2",
+  6: "STD-3",
+  7: "STD-4",
+  8: "STD-5",
+  9: "STD-6",
+  10: "STD-7",
+  11: "STD-8",
+  12: "STD-9",
+  13: "STD-10",
+  14: "Pre-Nursery",
+};
+
 function ViewStudents() {
   const data = useSelector((state) => state.students.studentarray);
   const isDataLoading = useSelector((state) => state.students.loading);
@@ -119,9 +137,9 @@ function ViewStudents() {
       setFilteredData(dataNew);
       setFilterChipLabel(
         "Filter set for class " +
-          getClassNameByValue(selectedClass) +
-          " and section " +
-          selectedSection
+        getClassNameByValue(selectedClass) +
+        " and section " +
+        selectedSection
       );
       setFilterChip(true);
     } else if (selectedSection === -1 && selectedClass !== -1) {
@@ -210,9 +228,8 @@ function ViewStudents() {
     {
       field: "class",
       title: "Class",
-      render: (rowData) => {
-        return <p>{getClassNameByValue(rowData.class)}</p>;
-      },
+      lookup:classLookup,
+      render: ({ class: classValue }) => <p>{classLookup[classValue]}</p>,
     },
     { field: "section", title: "Section" },
     { field: "class_roll", title: "Roll" },
@@ -228,7 +245,6 @@ function ViewStudents() {
     }
   };
 
-  // if (loading === true) return <h1>loading</h1>;/
   return (
     <PageContainer className={Styles.page}>
       <Navbar />
@@ -282,7 +298,6 @@ function ViewStudents() {
                 <MenuItem value={1}>
                   <em>Select</em>
                 </MenuItem>
-                <MenuItem value="2023/24">2023/24</MenuItem>
                 <MenuItem value="2025/26">2025/26</MenuItem>
               </Select>
             </FormControl>
@@ -377,8 +392,11 @@ function ViewStudents() {
           columns={columnMat}
           data={filteredData}
           title="Students Data"
+
           options={{
             grouping: true,
+            pageSizeOptions: [5, 10, 20, 50, 100],
+            pageSize: 10,
             headerStyle: {
               backgroundColor: "#5d87ff",
               color: "#FFF",
@@ -473,7 +491,7 @@ function ViewStudents() {
             View Profile
           </MenuItem>
           {/* <Divider /> */}
-       
+
           {/* <MenuItem onClick={handleMenuClick}>
             <ListItemIcon>
               <BlockIcon fontSize="small" />

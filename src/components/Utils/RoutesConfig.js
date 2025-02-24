@@ -199,7 +199,7 @@ export const routesConfig = [
   //   Component: FeeReceipt,
   // },
   {
-    title: "School Results",
+    title: "Exams & Results",
     to: "/SchoolResults",
     icon: IconReportAnalytics,
     isCollapsable: true,

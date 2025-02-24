@@ -6,7 +6,7 @@ export type StudentDetailsType = {
   admission_no: string;
   alternate_number: string;
   blood_group: string;
-  cast: string;
+  caste: string;
   city: string;
   class: number | null;
   class_roll: string;
