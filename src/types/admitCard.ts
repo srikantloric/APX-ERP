@@ -1,3 +1,5 @@
+import { ExamData } from "components/Exams/ExamPlannerTable";
+
 export interface admitCardType {
     studentName: string;
     rollNumber: string;
@@ -5,14 +7,11 @@ export interface admitCardType {
     fatherName: string;
     studentDOB: string;
     studentMob: string;
+    studentId:string;
     profile_url: string;
     examTitle: string;
     session: string;
     startTime: string;
     endTime: string;
-    timeTabel: {
-        date: Date;
-        firstMeeting: string;
-        secondMeeting: string;
-    }[];
+    timeTabel:ExamData[]
 }

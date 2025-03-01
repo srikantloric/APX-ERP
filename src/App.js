@@ -19,6 +19,7 @@ import AuthProvider from "./context/AuthContext";
 // Utility Component for Lazy Loading
 import Loadable from "./components/thirdparty/Loadable";
 import AdmitCard from "pages/Reports/AdmitCard";
+import ExamPlanner from "pages/ResultsManagement/ExamPlanner";
 
 // Lazy Loaded Components
 
@@ -179,15 +180,22 @@ function App() {
                 />
                 <Route path="feeReciept" element={<FeeReceipt />} />
 
+                {/* Exam Management routes */}
                 <Route
                   path="/schoolResults/update-results"
                   element={<UpdateResults />}
                 />
                 <Route
+                  path="/schoolResults/exam-planner"
+                  element={<ExamPlanner />}
+                />
+                <Route
                   path="/schoolResults/print-results"
                   element={<PrintResult />}
                 />
+                {/* Exam Management routes */}
                 <Route path="/print-id-cards" element={<IdCardGeneration />} />
+
 
                 {/* Reports Routes */}
                 <Route

@@ -4,23 +4,29 @@ import LSPage from "components/Utils/LSPage";
 import PageContainer from "components/Utils/PageContainer";
 import { IconReport } from "@tabler/icons-react";
 import { Paper } from "@mui/material";
-import { Box, Button, Option, Select, Stack, Typography } from "@mui/joy";
+import { Box, Button, Chip, Option, Select, Stack, Typography } from "@mui/joy";
 import { admitCardType } from "types/admitCard";
 import { useState } from "react";
-import { SCHOOL_CLASSES, SCHOOL_SESSIONS } from "config/schoolConfig";
-import { generateAdmitCard } from "../../utilities/GenerateAdmitCard";
+import { SCHOOL_CLASSES } from "config/schoolConfig";
+import { GenerateAdmitCard } from "../../utilities/GenerateAdmitCard";
 import { db } from "../../firebase";
 import { StudentDetailsType } from "types/student";
 import { getClassNameByValue } from "utilities/UtilitiesFunctions";
+import { examData } from "components/Exams/ExamPlannerTable";
+
+
+
 
 const AdmitCard = () => {
-  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [selectedExam, setSelectedExam] = useState<string | null>(null);
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
+  const [studentData, setStudentData] = useState<admitCardType[]>([]);
+  const [pdfUrl, setPdfUrl] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleGenerateAdmitCard = async () => {
-    if (!selectedClass || !selectedSession) {
-      alert("Please select class and session!");
+    if (!selectedClass || !selectedExam) {
+      alert("Please select exam and class!");
       return;
     }
 
@@ -35,46 +41,27 @@ const AdmitCard = () => {
       const studentData: admitCardType[] = studentSnapshot.docs.map((doc) => {
         const student = doc.data() as StudentDetailsType;
         return {
-          examTitle: "Mid Sem",
-          session: selectedSession,
-          startTime: "7am",
-          endTime: "10am",
+          examTitle: "Annual Exam (Term-4)",
+          session: "2024-25",
+          startTime: "09:00 AM",
+          endTime: "12:30 PM",
           studentName: student.student_name,
           fatherName: student.father_name,
           rollNumber: student.class_roll,
+          studentId:student.admission_no,
           studentDOB: student.dob,
           studentMob: student.contact_number,
           className:
             student.class !== null
-              ? getClassNameByValue(student.class) || "Unknown"
-              : "Unknown",
+              ? getClassNameByValue(student.class) || "N/A"
+              : "N/A",
           profile_url: student.profil_url,
-          timeTabel: [
-            {
-              date: new Date(),
-              firstMeeting: "Math",
-              secondMeeting: "Science",
-            },
-            {
-              date: new Date(),
-              firstMeeting: "English",
-              secondMeeting: "History",
-            },
-            {
-              date: new Date(),
-              firstMeeting: "SST",
-              secondMeeting: "Physics",
-            },
-            {
-              date: new Date(),
-              firstMeeting: "---",
-              secondMeeting: "Chemistry",
-            },
-          ],
+          timeTabel: examData
         };
       });
-
-      await generateAdmitCard(studentData);
+      setStudentData(studentData)
+      const pdfUrl = await GenerateAdmitCard(studentData);
+      setPdfUrl(pdfUrl);
     } catch (error) {
       console.error("Error fetching student data:", error);
       alert("Failed to generate admit card. Please try again.");
@@ -101,6 +88,16 @@ const AdmitCard = () => {
             </Box>
             <Stack direction="row" alignItems="center" gap={1.5}>
               <Select
+                placeholder="Choose exam"
+                value={selectedExam}
+                onChange={(e, val) => setSelectedExam(val)}
+              >
+                <Option value="ANNUALT4">
+                  Annual Exam (Term-4)
+                </Option>
+
+              </Select>
+              <Select
                 placeholder="Choose class"
                 value={selectedClass}
                 onChange={(e, val) => setSelectedClass(val)}
@@ -112,17 +109,7 @@ const AdmitCard = () => {
                 ))}
               </Select>
 
-              <Select
-                placeholder="Choose session"
-                value={selectedSession}
-                onChange={(e, val) => setSelectedSession(val)}
-              >
-                {SCHOOL_SESSIONS.map((item) => (
-                  <Option key={item.value} value={item.value}>
-                    {item.title}
-                  </Option>
-                ))}
-              </Select>
+
 
               <Button
                 sx={{ ml: "8px" }}
@@ -134,6 +121,22 @@ const AdmitCard = () => {
             </Stack>
           </Stack>
         </Paper>
+        {pdfUrl && (
+          <>
+            <Chip sx={{ mt: "8px", mb: "8px" }}>
+              Total admitcard count :{studentData.length}
+            </Chip>
+            <Paper sx={{ height: "100vh" }}>
+              <iframe
+                src={pdfUrl}
+                title="PDF Viewer"
+                width="100%"
+                height="100%"
+                frameBorder={0}
+              />
+            </Paper>
+          </>
+        )}
       </LSPage>
     </PageContainer>
   );

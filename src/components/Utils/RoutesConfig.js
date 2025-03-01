@@ -35,6 +35,7 @@ import Reports from "pages/Reports/Reports";
 import Transport from "pages/transport/Transport";
 import WebsiteConfig from "pages/WebsiteConfig/WebsiteConfigPage";
 import AddStudentNew from "pages/Users/AddStudentNew";
+import ExamPlanner from "pages/ResultsManagement/ExamPlanner";
 
 export const routesConfig = [
   {
@@ -212,6 +213,13 @@ export const routesConfig = [
         isCollapsable: false,
         isHeader: false,
         Component: <UpdateResults />,
+      },
+      {
+        title: "Exam Planner",
+        to: "schoolResults/exam-planner",
+        isCollapsable: false,
+        isHeader: false,
+        Component: <ExamPlanner />,
       },
       {
         title: "Print Results",

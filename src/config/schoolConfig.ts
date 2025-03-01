@@ -5,9 +5,13 @@ export const SCHOOL_EMAIL = "contact@apxschool.org"
 export const SCHOOL_WEBSITE = "https://apxschool.org"
 export const SCHOOL_ACCOUNTANT = 'Ajay Verma'
 
+export interface SchoolClass {
+  title: string;
+  value: number;
+  id: number;
+}
 
-
-export const SCHOOL_CLASSES = [
+export const SCHOOL_CLASSES:SchoolClass[] = [
   { title: "Pre-Nursery", value: 14, id: 14 },
   { title: "Nursery", value: 1, id: 1 },
   { title: "LKG", value: 2, id: 2 },
