@@ -44,7 +44,7 @@ export const GenerateAdmitCard = async (
     doc.addFileToVFS("Poppins-Semibold", POPPINS_SEMIBOLD);
     doc.addFont("Poppins-Semibold", "Poppins", "semibold");
 
-    const cardHeight = (297 / 3);
+    const cardHeight = (297 / 3)-2;
     const margin = 5; // Margin around the admit card
 
     data.forEach((studentData, index) => {
