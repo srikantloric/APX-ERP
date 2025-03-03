@@ -115,18 +115,23 @@ export const GenerateAdmitCard = async (
         studentDetailsX,
         positionY + 40
       );
-      doc.text(`DOB: ${studentData.studentDOB}`, studentDetailsX, positionY + 45);
+      doc.text(
+        `Mother: ${studentData.motherName}`,
+        studentDetailsX,
+        positionY + 45
+      );
+      doc.text(`DOB: ${studentData.studentDOB}`, studentDetailsX, positionY + 50);
 
       // Card Number and Roll Number
       doc.text(
         `Id: ${studentData.studentId}`,
         studentDetailsX,
-        positionY + 50
+        positionY + 55
       );
       doc.text(
         `Roll No: ${studentData.rollNumber}`,
         studentDetailsX,
-        positionY + 55
+        positionY + 60
       );
 
       // Exam Details Box
@@ -179,9 +184,10 @@ export const GenerateAdmitCard = async (
       const signatureY = positionY + cardHeight - 15;
       doc.setFont("Poppins", "normal");
       doc.setFontSize(10);
-      doc.text("(Exam Controller)", margin + 20, signatureY);
-      doc.text("(Class Teacher)", 85, signatureY);
-      doc.text("(Director)", 150, signatureY);
+      // doc.text("(Exam Controller)", margin + 20, signatureY);
+      doc.text("(Exam Controller)",150, signatureY);
+      // doc.text("(Class Teacher)", 85, signatureY);
+      // doc.text("(Director)", 150, signatureY);
     });
     const blob = doc.output("blob");
     const url = URL.createObjectURL(blob);

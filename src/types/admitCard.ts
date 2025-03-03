@@ -5,6 +5,7 @@ export interface admitCardType {
     rollNumber: string;
     className: string;
     fatherName: string;
+    motherName:string;
     studentDOB: string;
     studentMob: string;
     studentId:string;

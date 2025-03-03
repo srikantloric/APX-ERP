@@ -48,6 +48,7 @@ const AdmitCard = () => {
           studentName: student.student_name,
           fatherName: student.father_name,
           rollNumber: student.class_roll,
+          motherName:student.mother_name,
           studentId:student.admission_no,
           studentDOB: student.dob,
           studentMob: student.contact_number,
