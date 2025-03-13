@@ -19,6 +19,11 @@ export const examData: ExamData[] = [
             {
                 session: "1st",
                 subjects: {
+                    "Pre-Nursery":"HINDI",
+                    "Nursery":"HINDI",
+                    "LKG":"ENGLISH",
+                    "UKG":"MATHS",
+
                     "STD-1": "HINDI",
                     "STD-2": "ENGLISH",
                     "STD-3": "MATH",
@@ -35,6 +40,11 @@ export const examData: ExamData[] = [
             {
                 session: "1st",
                 subjects: {
+                    "Pre-Nursery":"ENGLISH",
+                    "Nursery":"ENGLISH",
+                    "LKG":"MATHS",
+                    "UKG":"HINDI",
+
                     "STD-1": "ENGLISH",
                     "STD-2": "MATHS",
                     "STD-3": "SCIENCE",
@@ -51,6 +61,11 @@ export const examData: ExamData[] = [
             {
                 session: "1st",
                 subjects: {
+                    "Pre-Nursery":"MATHS",
+                    "Nursery":"MATHS",
+                    "LKG":"HINDI",
+                    "UKG":"ENGLISH",
+
                     "STD-1": "MATHS",
                     "STD-2": "SCIENCE",
                     "STD-3": "SST",
@@ -67,6 +82,11 @@ export const examData: ExamData[] = [
             {
                 session: "1st",
                 subjects: {
+                    "Pre-Nursery":"DRAWING",
+                    "Nursery":"DRAWING",
+                    "LKG":"DRAWING",
+                    "UKG":"DRAWING",
+
                     "STD-1": "SCIENCE",
                     "STD-2": "SST",
                     "STD-3": "COMPUTER",
@@ -83,6 +103,11 @@ export const examData: ExamData[] = [
             {
                 session: "1st",
                 subjects: {
+                    "Pre-Nursery":"ORAL",
+                    "Nursery":"ORAL",
+                    "LKG":"ORAL",
+                    "UKG":"ORAL",
+
                     "STD-1": "SST",
                     "STD-2": "COMPUTER",
                     "STD-3": "HINDI",
@@ -99,6 +124,10 @@ export const examData: ExamData[] = [
             {
                 session: "1st",
                 subjects: {
+                    "Pre-Nursery":"ORAL",
+                    "Nursery":"ORAL",
+                    "LKG":"ORAL",
+                    "UKG":"ORAL",
                     "STD-1": "COMPUTER",
                     "STD-2": "HINDI",
                     "STD-3": "ENGLISH",
@@ -117,7 +146,6 @@ const Table = styled("table")({
     width: "100%",
     borderCollapse: "collapse",
     textAlign: "left",
-
 });
 
 const Th = styled("th")({
@@ -144,7 +172,8 @@ const Tr = styled("tr")(({ theme }) => ({
 
 const ExamPlannerTable: React.FC = () => {
     return (
-        <Table>
+       
+            <Table >
             <thead>
                 <Tr>
                     <Th>Sl</Th>
@@ -175,6 +204,7 @@ const ExamPlannerTable: React.FC = () => {
                 )}
             </tbody>
         </Table>
+      
     );
 };
 export default ExamPlannerTable;

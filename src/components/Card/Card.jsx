@@ -2,7 +2,7 @@ import  {useState } from "react";
 import Styles from "./Cards.module.scss";
 import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import LOGO from "../../assets/logotransparent.png";
+// import LOGO from "../../assets/logotransparent.png";
 
 function Card({ facultyData }) {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ function Card({ facultyData }) {
           </div>
 
           {facultyData.is_from_management && imageLoaded ? (
-            <img className={Styles.badge} src={LOGO}></img>
+            <img className={Styles.badge}></img>
           ) : null}
         </div>
         <div className={Styles.cardBody}>

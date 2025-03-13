@@ -104,6 +104,7 @@ const schema = z.object({
   transportation_fee: z.number(),
   fee_discount: z.number(),
   updated_at: z.instanceof(firebase.firestore.Timestamp).optional(),
+  
 });
 
 type UpdateFormFields = z.infer<typeof schema>;

@@ -50,7 +50,8 @@ function ExamCardWithSchedule() {
                 </Stack>
             </Card>
             {isExamScheduleShowing &&
-                <Stack justifyContent={"center"} alignItems={"center"} mb={4}>
+  
+                <Stack justifyContent={"center"} alignItems={"center"} mb={4} >
                     <Box sx={{
                         width: "95%",
                         border: "1px solid #5D87FF",
@@ -59,7 +60,8 @@ function ExamCardWithSchedule() {
                         borderTopLeftRadius: 0,
                         borderTopRightRadius: 0,
                         p: 4,
-                        pt: 2
+                        pt: 2,
+                        overflowX:"auto"
                     }}>
                         <Typography level="title-md" mb={1}>Exam Schedule</Typography>
                         <ExamPlannerTable />
