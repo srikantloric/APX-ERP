@@ -3,7 +3,7 @@ import {
   POPPINS_BOLD,
   POPPINS_REGULAR,
   POPPINS_SEMIBOLD,
-  PRINCIPAL_SIGN,
+
 } from "utilities/Base64Url";
 import { SCHOOL_NAME } from "config/schoolConfig";
 import { jsPDF } from "jspdf";
@@ -15,7 +15,7 @@ import { db } from "../../firebase";
 
 type paperMarksTypeLocal = {
   paperTitle: string;
-  paperMarkObtained: number|string;
+  paperMarkObtained: number | string;
   paperMarkPractical: number;
   paperMarkTheory: number;
   paperMarkPassing: number;
@@ -60,6 +60,7 @@ export const MarksheetReportGenerator = async (
       }
 
       resultData.forEach((data, index) => {
+
         const header2 = [
           [
             {
@@ -80,7 +81,7 @@ export const MarksheetReportGenerator = async (
             paperMarkTheory: item.paperMarkTheory,
             paperMarkPractical: item.paperMarkPractical,
             paperMarkPassing: 33,
-            paperMarkObtained: item.paperMarkObtained===0?"AB":item.paperMarkObtained,
+            paperMarkObtained: item.paperMarkObtained === 0 ? "AB" : item.paperMarkObtained,
           };
           resDataTable.push(res);
         });
@@ -198,8 +199,8 @@ export const MarksheetReportGenerator = async (
         doc.addFont("Poppins-Semibold", "Poppins", "semibold");
         ///Start of PDF Design
 
-        doc.addImage(LOGO_BASE_64, x + 8, y + 2, 25, 20);
-        doc.addImage(LOGO_BASE_64, cardWidth - 30, y + 2, 25, 20);
+        doc.addImage(LOGO_BASE_64, x + 8, y + 12, 25, 23);
+        doc.addImage(LOGO_BASE_64, cardWidth - 30, y + 12, 25, 23);
 
         const schoolHeaderStartX = x + 40;
         const schoolHeaderStartY = y + 10;
@@ -214,7 +215,7 @@ export const MarksheetReportGenerator = async (
 
         doc.setFontSize(9);
         doc.setFont("Poppins", "semibold");
-        const tagline = "An English Medium School Based on CBSE Syllabus";
+        const tagline = "An English Medium School Based on CBSE Curriculum";
         doc.text(
           tagline,
           (pageWidth - doc.getTextWidth(tagline)) / 2,
@@ -224,7 +225,7 @@ export const MarksheetReportGenerator = async (
         const schoolContactDetailStartY = schoolHeaderStartY + 5;
         doc.setFontSize(9);
         doc.setFont("Poppins", "normal");
-        const address = "Address: Patardih, Nawdiha, Jamua,";
+        const address = "Address: At-Golhaiya (Choura), Jamua";
         doc.text(
           address,
           (pageWidth - doc.getTextWidth(address)) / 2,
@@ -236,19 +237,19 @@ export const MarksheetReportGenerator = async (
           (pageWidth - doc.getTextWidth(address2)) / 2,
           schoolContactDetailStartY + 9
         );
-        const contact = "Phone: 91-9973669863,91-9608108499 ";
+        const contact = "Phone:  +91-7070829020, +91-6204313113, +91-9661009250";
         doc.text(
           contact,
           (pageWidth - doc.getTextWidth(contact)) / 2,
           schoolContactDetailStartY + 13
         );
-        const contact2 = "91-6299820529,91-864007990";
+        const contact2 = "+91-9939557894, +91-7634932030, +91-6205447024";
         doc.text(
           contact2,
           (pageWidth - doc.getTextWidth(contact2)) / 2,
           schoolContactDetailStartY + 17
         );
-        const websiteName = "www.orientpublicschool.org";
+        const websiteName = "www.apxschool.org";
         doc.text(
           websiteName,
           (pageWidth - doc.getTextWidth(websiteName)) / 2,
@@ -275,7 +276,7 @@ export const MarksheetReportGenerator = async (
 
         const classText = `Class - ${getClassNameByValue(
           data.student.class!
-        )} ${data.student.section}`;
+        )} (${data.student.section})`;
         doc.text(
           classText,
           (pageWidth - doc.getTextWidth(classText)) / 2,
@@ -341,7 +342,7 @@ export const MarksheetReportGenerator = async (
         //   leftXStartContent,
         //   studentDetailsStartY + 36
         // );
-        let text = ": #" + data.student.address;
+        let text = ": " + data.student.address;
         const wrapx = leftXStartContent;
         const wrapy = studentDetailsStartY + 36;
         const maxWidth = 90;
@@ -449,14 +450,17 @@ export const MarksheetReportGenerator = async (
         );
 
 
-        doc.addImage(PRINCIPAL_SIGN, startX + 2 * (cardWidth / 3)-5, startY-22, 40, 15);
+        // doc.addImage(PRINCIPAL_SIGN, startX + 2 * (cardWidth / 3)-5, startY-22, 40, 15);
         doc.text("Principal Sign", startX + 2 * (cardWidth / 3), startY);
 
-        doc.addPage();
+ 
         if (index === resultData.length - 1) {
           const blob = doc.output("blob");
           const url = URL.createObjectURL(blob);
           resolve(url);
+        }else{
+          
+          doc.addPage();
         }
       });
     } catch (error) {
