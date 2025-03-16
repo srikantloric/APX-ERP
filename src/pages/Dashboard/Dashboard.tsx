@@ -49,7 +49,7 @@ export const options = {
 };
 
 function Dashboard() {
-  const { totalStudent, totalFeeCollection } = useSelector((state: RootState) => state.dashboard.dashboardAnalytics);
+  const { totalStudents, totalFeeCollection } = useSelector((state: RootState) => state.dashboard.dashboardAnalytics);
   const [smsBalance, setSmsBalance] = useState<number>(0);
   const dispatch = useDispatch();
 
@@ -80,7 +80,7 @@ function Dashboard() {
             >
               <Grid xs={12} md={3.9} lg={3.9}>
                 <CardDashboard
-                  headerTitle={totalStudent||"-"}
+                  headerTitle={totalStudents||"-"}
                   subHeaderTitle="Total Students"
                   color="#81c784"
                   Icon={Profile2User}
