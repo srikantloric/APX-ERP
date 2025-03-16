@@ -105,13 +105,13 @@ export const GenerateFeeReciept = async ({
 
     const logoImg = new Image();
     logoImg.src = "/logotransparent.png";
-    doc.addImage(logoImg, "PNG", 12, 10, 25, 20);
-    doc.addImage(logoImg, "PNG", pBorderPaddOffsetX + 5, 10, 25, 20);
+    doc.addImage(logoImg, "PNG", 12, 10, 25, 23);
+    doc.addImage(logoImg, "PNG", pBorderPaddOffsetX + 5, 10, 25, 23);
 
     const schoolHeaderStartX = 40;
     const schoolHeaderStartY = 18;
     //school name
-    doc.setFontSize(21);
+    doc.setFontSize(18);
     doc.setFont("Poppins", "bold");
     doc.text(SCHOOL_NAME, schoolHeaderStartX, schoolHeaderStartY);
     doc.text(
@@ -140,7 +140,7 @@ export const GenerateFeeReciept = async ({
       3
     );
 
-    doc.setFontSize(8);
+    doc.setFontSize(6);
     doc.setFont("Poppins", "normal");
     doc.text(
       SCHOOL_ADDRESS,
@@ -353,15 +353,30 @@ export const GenerateFeeReciept = async ({
       pBorderPaddOffsetX + 3,
       studentDetailsStartY + 12.5
     );
+    const maxWidthh = 100; // Set your max width
+    const addressLines = doc.splitTextToSize(studentMasterData.address, maxWidthh);
 
     doc.text(
-      "Address : " + studentMasterData.address,
-      pBorderPadd + 3,
+      "Address :",
+       pBorderPadd + 3,
       studentDetailsStartY + 16.5
     );
+
     doc.text(
-      "Address : " + studentMasterData.address,
+      addressLines,
+      pBorderPadd + 20,
+      studentDetailsStartY + 16.5
+    );
+
+    doc.text(
+      "Address :",
       pBorderPaddOffsetX + 3,
+      studentDetailsStartY + 16.5
+    );
+
+    doc.text(
+      addressLines,
+      pBorderPaddOffsetX + 20, // Adjust to align with the address label
       studentDetailsStartY + 16.5
     );
 
