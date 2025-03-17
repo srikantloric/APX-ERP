@@ -15,32 +15,32 @@ type Report = {
 };
 
 const reports: Report[] = [
-  {
-    id: "balance-sheet",
-    title: "Balance Sheet",
-    description:
-      "Get today's complete overview of expenditure and income in a single report",
-  },
+  // {
+  //   id: "balance-sheet",
+  //   title: "Balance Sheet",
+  //   description:
+  //     "Get today's complete overview of expenditure and income in a single report",
+  // },
   {
     id: "due-report",
     title: "Due Sheet",
     description: "Get all due list of students",
   },
-  {
-    id: "daily-attendance-report",
-    title: "Daily Attendance Report",
-    description: "Print daily attendance report for each class",
-  },
-  {
-    id: "attendance-register",
-    title: "Attendance Register",
-    description: "Print attendance register for each class",
-  },
-  {
-    id: "demand-slip",
-    title: "Demand Slip",
-    description: "Print demand slip for students due payments.",
-  },
+  // {
+  //   id: "daily-attendance-report",
+  //   title: "Daily Attendance Report",
+  //   description: "Print daily attendance report for each class",
+  // },
+  // {
+  //   id: "attendance-register",
+  //   title: "Attendance Register",
+  //   description: "Print attendance register for each class",
+  // },
+  // {
+  //   id: "demand-slip",
+  //   title: "Demand Slip",
+  //   description: "Print demand slip for students due payments.",
+  // },
   {
     id: "admit-card",
     title: "Admit Card",

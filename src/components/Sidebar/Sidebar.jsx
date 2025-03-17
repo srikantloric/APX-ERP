@@ -7,9 +7,13 @@ import { motion } from "framer-motion";
 import { IconChevronDown, IconChevronUp, IconPoint } from "@tabler/icons-react";
 import SIdebarMenuItem from "./SIdebarMenuItem";
 import OPSLogo from "../../assets/opslogo.png";
+import { useAppConfig } from "hooks/useAppConfig";
 
 function Sidebar() {
   const status = useContext(SideBarContext);
+
+  //load app config
+  const { config, loading, error } = useAppConfig();
 
   const Sidebar_Animation = {
     open: {
@@ -26,8 +30,11 @@ function Sidebar() {
     },
   };
 
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
+
   return (
-    
+
     <motion.div
       variants={Sidebar_Animation}
       animate={status.isActive ? "open" : "closed"}
@@ -35,7 +42,7 @@ function Sidebar() {
     >
       <div className="sidebar">
         <div className="sidebar-logo">
-          <img src={OPSLogo} alt="school logo" />
+          <img src={config.sidebarLogo} alt="school logo" />
         </div>
         <div className="sidebar-menu">
           {routesConfig.map((menus, index) => {

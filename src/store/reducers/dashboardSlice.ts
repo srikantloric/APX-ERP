@@ -11,7 +11,9 @@ type DashboardAnalyticsType = {
     today: number
   }
   ,
-  totalStudents: number
+  totalStudents: number,
+  totalMaleStudent: number,
+  totalFemaleStudent: number,
 }
 
 // Define the shape of the state
@@ -29,7 +31,7 @@ export const fetchTotalStudents = createAsyncThunk<DashboardAnalyticsType, void,
       const response = await db.collection("ANALYTICS").doc("dashboardAnalytics").get();
       const dashboardAnalyticsData = response.data() as DashboardAnalyticsType;
 
-      console.log("Dashboard Analytis :",dashboardAnalyticsData);
+      console.log("Dashboard Analytis :", dashboardAnalyticsData);
       return dashboardAnalyticsData;
     } catch (err: any) {
       return rejectWithValue(err.message || "Something went wrong");

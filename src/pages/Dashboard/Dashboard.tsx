@@ -6,7 +6,7 @@ import { CategoryScale } from "chart.js";
 import PageContainer from "../../components/Utils/PageContainer";
 import Footer from "../../components/Footer/Footer";
 import BarGraphChart from "../../components/Graph/BarGraphChart";
-import AttendanceBarGraph from "../../components/Graph/AttendanceBarGraph";
+
 import {
   Box,
   Divider,
@@ -32,6 +32,8 @@ import { useEffect, useState } from "react";
 
 import { fetchTotalStudents } from "store/reducers/dashboardSlice";
 import { RootState, useDispatch, useSelector } from "store";
+import { useAppConfig } from "hooks/useAppConfig";
+import MaleFemaleBarGraph from "components/Graph/MaleFemaleBarGraph";
 
 Chart.register(CategoryScale);
 
@@ -49,8 +51,12 @@ export const options = {
 };
 
 function Dashboard() {
-  const { totalStudents, totalFeeCollection } = useSelector((state: RootState) => state.dashboard.dashboardAnalytics);
+  const { totalStudents, totalFeeCollection,totalFemaleStudent,totalMaleStudent } = useSelector((state: RootState) => state.dashboard.dashboardAnalytics);
   const [smsBalance, setSmsBalance] = useState<number>(0);
+
+  //load app config
+  const {config,loading,error} = useAppConfig();
+
   const dispatch = useDispatch();
 
   const fetchSMSBalance = async () => {
@@ -64,6 +70,10 @@ function Dashboard() {
     dispatch(fetchTotalStudents());
     fetchSMSBalance();
   }, []);
+  
+  console.log(config)
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <>
@@ -238,9 +248,9 @@ function Dashboard() {
             >
               <Box>
                 <Typography level="title-md" textAlign="center">
-                  Day Wise Attendance Report of School
+                 Male / Female Student Count
                 </Typography>
-                <AttendanceBarGraph />
+               <MaleFemaleBarGraph maleCount={totalMaleStudent} femaleCount={totalFemaleStudent}/>
               </Box>
             </Sheet>
           </Grid>
