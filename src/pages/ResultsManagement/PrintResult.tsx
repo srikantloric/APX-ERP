@@ -122,7 +122,7 @@ function PrintResult() {
                     if (result.data().examId === selectedExam) {
                       let newMarkSheet: marksheetType = {
                         student: studentList[i],
-                        examTitle:result.data().examTitle,
+                        examTitle: result.data().examTitle,
                         result: result.data().result as paperMarksType[],
                       };
                       temMarkSheetList.push(newMarkSheet);
@@ -140,8 +140,7 @@ function PrintResult() {
               });
           }
           setLoading(false);
-          //   setMarksheetList(temMarkSheetList);
-          //   printMarkSheet(marksheetList);
+
         } else {
           setLoading(false);
           enqueueSnackbar("No result found :)", { variant: "warning" });
@@ -196,15 +195,20 @@ function PrintResult() {
               snap.forEach((resDoc) => {
                 const res = resDoc.data() as resultType;
                 if (res.examId === selectedExam) {
-                  let totalMark = 0;
-                  for (let j = 0; j < res.result.length; j++) {
-                    totalMark += res.result[j].paperMarkObtained;
-                  }
+
+                  let marksObtained = res.result.reduce((total, item) => {
+                    const obtainedMarkCalculated =
+                      item.paperId === "DRAWING"
+                        ? 0
+                        : Number(item.paperMarkTheory) + Number(item.paperMarkPractical);
+
+                    return total + obtainedMarkCalculated;
+                  }, 0);
 
                   const rankTemp: rankType = {
                     studentId: allStudentList[i].id,
                     rankObtained: -1,
-                    marksObtained: totalMark,
+                    marksObtained: marksObtained,
                   };
 
                   const rankTempExtended: rankTypeExtended = {
@@ -212,7 +216,7 @@ function PrintResult() {
                     studentName: allStudentList[i].student_name,
                     studentFather: allStudentList[i].father_name,
                     rankObtained: -1,
-                    marksObtained: totalMark,
+                    marksObtained: marksObtained,
                   };
 
                   markSheetTempList.push(rankTemp);
@@ -336,26 +340,9 @@ function PrintResult() {
             </Stack>
           </Stack>
         </Paper>
-
-        {pdfUrl && (
-          <>
-            <Chip sx={{ mt: "8px", mb: "8px" }}>
-              Total marksheet count :{marksheetList.length}
-            </Chip>
-            <Paper sx={{ height: "100vh" }}>
-              <iframe
-                src={pdfUrl}
-                title="PDF Viewer"
-                width="100%"
-                height="100%"
-                frameBorder={0}
-              />
-            </Paper>
-          </>
-        )}
-
         <br />
-        {studentRankDetails.length>0 && (
+        <br />
+        {studentRankDetails.length > 0 && (
           <Sheet variant="outlined" sx={{ borderRadius: "10px" }}>
             <Stack
               direction="row"
@@ -476,6 +463,26 @@ function PrintResult() {
             </Sheet>
           </Sheet>
         )}
+        <br />
+        <br />
+
+        {pdfUrl && (
+          <>
+            <Chip sx={{ mt: "8px", mb: "8px" }}>
+              Total marksheet count :{marksheetList.length}
+            </Chip>
+            <Paper sx={{ height: "100vh" }}>
+              <iframe
+                src={pdfUrl}
+                title="PDF Viewer"
+                width="100%"
+                height="100%"
+                frameBorder={0}
+              />
+            </Paper>
+          </>
+        )}
+
       </LSPage>
     </PageContainer>
   );

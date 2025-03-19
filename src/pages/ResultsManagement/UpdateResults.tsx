@@ -88,7 +88,7 @@ function UpdateResults() {
   const [selectedExamDocId, setSelectedExamDocId] = useState<string | null>(
     null
   );
-
+  const grades = ["A+", "A", "B+", "B", "C+", "C", "D"];
   useEffect(() => {
     setStudentList([]);
     db.collection("CONFIG")
@@ -233,9 +233,9 @@ function UpdateResults() {
           paperId: paper.paperId,
           paperTitle: paper.paperTitle,
           paperMarkObtained: 0,
-          paperMarkTheory: 80,
+          paperMarkTheory: 0,
           paperMarkPassing: 33,
-          paperMarkPractical: 20,
+          paperMarkPractical: 0,
         };
 
         const isPaperAlreadyExising = studentSelectedMarkList.filter(
@@ -256,36 +256,26 @@ function UpdateResults() {
     );
   };
 
-  const handleMarkUpdate = (
-    val: string,
-    paper: paperMarksType,
-    type: string
-  ) => {
-    if (type === "THEORY") {
-      setStudentSelectedMarkList((prev) =>
-        prev.map((item) =>
-          item.paperId === paper.paperId
-            ? { ...item, paperMarkTheory: Number(val) }
-            : item
-        )
-      );
-    } else if (type === "PRAC") {
-      setStudentSelectedMarkList((prev) =>
-        prev.map((item) =>
-          item.paperId === paper.paperId
-            ? { ...item, paperMarkPractical: Number(val) }
-            : item
-        )
-      );
-    } else {
-      setStudentSelectedMarkList((prev) =>
-        prev.map((item) =>
-          item.paperId === paper.paperId
-            ? { ...item, paperMarkObtained: Number(val) }
-            : item
-        )
-      );
-    }
+  const handleMarkUpdate = (val: string, paper: paperMarksType, type: string) => {
+    setStudentSelectedMarkList((prev) =>
+      prev.map((item) =>
+        item.paperId === paper.paperId
+          ? {
+            ...item,
+            ...(type === "THEORY" &&
+              (item.paperId === "DRAWING"
+                ? { paperMarkTheory: val } // Assign grade for DRAWING
+                : { paperMarkTheory: Number(val) })), // Assign number for other subjects
+            ...(type === "PRAC" && { paperMarkPractical: Number(val) }), // Keep practical as number
+            ...(item.paperId !== "DRAWING" && {
+              paperMarkObtained:
+                (type === "THEORY" ? Number(val) : Number(item.paperMarkTheory || 0)) +
+                (type === "PRAC" ? Number(val) : Number(item.paperMarkPractical || 0)),
+            }),
+          }
+          : item
+      )
+    );
   };
 
   const handleSaveResultBtn = () => {
@@ -698,7 +688,7 @@ function UpdateResults() {
                 Please fill marks for respective papers.
               </Typography>
 
-              <Typography textAlign="center">Total Theory | Total Practical | Marks Obtained</Typography>
+              <Typography textAlign="center">Theory Marks + Practical Marks = Total Marks</Typography>
               <Sheet
                 sx={{ mt: "6px", flex: 1, p: "10px" }}
                 variant="soft"
@@ -708,53 +698,90 @@ function UpdateResults() {
                   <Typography>No Paper Selected</Typography>
                 ) : null}
                 {studentSelectedMarkList.map((paper, index) => {
-                  return (
-                    <Stack
-                      key={paper.paperId}
-                      direction="row"
-                      alignItems="center"
-                      mb={"1rem"}
-                      justifyContent="space-between"
-                    >
-                      <Typography level="title-md" sx={{ mr: "8px" }}>
-                        {index + 1}. {paper.paperTitle}
-                      </Typography>
-                      <Stack direction={"row"} gap={2}>
-                        <Input
-                          type="text"
-                          sx={{ width: "90px" }}
-                          onChange={(e) =>
-                            handleMarkUpdate(e.target.value, paper, "THEORY")
-                          }
-                          value={paper.paperMarkTheory || 0}
-                        />
-                        <Input
-                          type="text"
-                          sx={{ width: "90px" }}
-                          onChange={(e) =>
-                            handleMarkUpdate(e.target.value, paper, "PRAC")
-                          }
-                          value={paper.paperMarkPractical || 0}
-                        />
-                        <Divider orientation="vertical" />
-                        <Input
-                          type="text"
-                          sx={{ width: "90px" }}
-                          onChange={(e) =>
-                            handleMarkUpdate(e.target.value, paper, "OBTAINED")
-                          }
-                          value={paper.paperMarkObtained || 0}
-                        />
-                        <Button
-                          size="sm"
-                          variant="plain"
-                          color="danger"
-                          onClick={() => handlePaperDeleteBtn(paper)}
-                          startDecorator={<Delete />}
-                        ></Button>
+                  if (paper.paperId === "DRAWING") {
+                    return (
+                      <Stack
+                        key={paper.paperId}
+                        direction="row"
+                        alignItems="center"
+                        mb={"1rem"}
+                        justifyContent="space-between"
+                      >
+                        <Typography level="title-md" sx={{ mr: "8px" }}>
+                          {index + 1}. {paper.paperTitle}
+                        </Typography>
+                        <Stack direction={"row"} gap={2} justifyContent={"center"} alignItems={"center"}>
+                          <Typography>Grade:</Typography>
+                          <Select
+                            sx={{ width: "150px" }}
+                            onChange={(e, val) => handleMarkUpdate(val as string, paper, "THEORY")}
+                            value={paper.paperMarkTheory as string || "A+"}
+                          >
+                            {grades.map((grade) => (
+                              <Option key={grade} value={grade}>
+                                {grade}
+                              </Option>
+                            ))}
+                          </Select>
+                          <Button
+                            size="sm"
+                            variant="plain"
+                            color="danger"
+                            onClick={() => handlePaperDeleteBtn(paper)}
+                            startDecorator={<Delete />}
+                          ></Button>
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  );
+                    );
+                  } else {
+
+                    return (
+                      <Stack
+                        key={paper.paperId}
+                        direction="row"
+                        alignItems="center"
+                        mb={"1rem"}
+                        justifyContent="space-between"
+                      >
+                        <Typography level="title-md" sx={{ mr: "8px" }}>
+                          {index + 1}. {paper.paperTitle}
+                        </Typography>
+                        <Stack direction={"row"} gap={2} justifyContent={"center"} alignItems={"center"}>
+                          <Input
+                            type="text"
+                            sx={{ width: "90px" }}
+                            onChange={(e) =>
+                              handleMarkUpdate(e.target.value, paper, "THEORY")
+                            }
+                            value={paper.paperMarkTheory || 0}
+                          />
+                          +
+                          <Input
+                            type="text"
+                            sx={{ width: "90px" }}
+                            onChange={(e) =>
+                              handleMarkUpdate(e.target.value, paper, "PRAC")
+                            }
+                            value={paper.paperMarkPractical || 0}
+                          />
+                          =
+                          <Input
+                            type="text"
+                            sx={{ width: "90px" }}
+                            disabled
+                            value={paper.paperMarkObtained || 0}
+                          />
+                          <Button
+                            size="sm"
+                            variant="plain"
+                            color="danger"
+                            onClick={() => handlePaperDeleteBtn(paper)}
+                            startDecorator={<Delete />}
+                          ></Button>
+                        </Stack>
+                      </Stack>
+                    );
+                  }
                 })}
               </Sheet>
             </DialogContent>

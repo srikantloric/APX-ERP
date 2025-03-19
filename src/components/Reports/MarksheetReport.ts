@@ -9,16 +9,16 @@ import { SCHOOL_NAME } from "config/schoolConfig";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { marksheetType, rankType } from "types/results";
-import { getClassNameByValue, getOrdinal } from "utilities/UtilitiesFunctions";
+import { getClassNameByValue, GetGradeFromMark, getOrdinal } from "utilities/UtilitiesFunctions";
 import { db } from "../../firebase";
 
 
 type paperMarksTypeLocal = {
   paperTitle: string;
   paperMarkObtained: number | string;
-  paperMarkPractical: number;
-  paperMarkTheory: number;
-  paperMarkPassing: number;
+  paperMarkPractical: number | string;
+  paperMarkTheory: number | string;
+  paperMarkPassing: number | string;
 };
 
 export const MarksheetReportGenerator = async (
@@ -70,39 +70,64 @@ export const MarksheetReportGenerator = async (
               styles: { halign: "center" },
             },
           ],
-          ["Subject", "Theory", "Pract.", "Pass Marks", "Marks Obtained"],
+          ["Subject", "Theory (80)", "Pract.(20)", "Marks Obtained", "Grade"],
         ];
 
 
         let resDataTable: paperMarksTypeLocal[] = [];
-        data.result.map((item) => {
+        data.result.forEach((item) => {
+          const obtainedMarkCaculated = item.paperId === "DRAWING" ? item.paperMarkTheory : Number(item.paperMarkTheory) + Number(item.paperMarkPractical)
+
           const res: paperMarksTypeLocal = {
             paperTitle: item.paperTitle,
-            paperMarkTheory: item.paperMarkTheory,
-            paperMarkPractical: item.paperMarkPractical,
-            paperMarkPassing: 33,
-            paperMarkObtained: item.paperMarkObtained === 0 ? "AB" : item.paperMarkObtained,
+            paperMarkTheory: item.paperId === "DRAWING" ? "-" : Number(item.paperMarkTheory),
+            paperMarkPractical: item.paperId === "DRAWING" ? "-" : Number(item.paperMarkPractical),
+
+            paperMarkObtained: item.paperId === "DRAWING"
+              ? item.paperMarkTheory // Assign grade for DRAWING
+              : obtainedMarkCaculated === 0
+                ? "AB"
+                : obtainedMarkCaculated, // Assign numeric value for other subjects
+            paperMarkPassing: GetGradeFromMark(obtainedMarkCaculated)
           };
+
           resDataTable.push(res);
         });
         // const y=cardHeight+margin;
         let startX = margin + 25;
-        let totalPassMarks = 0;
-        let fullMarks = 0;
-        let marksObtained = 0;
-        data.result.map(
-          (obj) =>
-          (fullMarks +=
-            Number(obj.paperMarkTheory) + Number(obj.paperMarkPractical))
-        );
 
-        data.result.map((obj) => (totalPassMarks += 33));
+        let totalAllMarks = 0;
 
-        data.result.map(
-          (obj) => (marksObtained += Number(obj.paperMarkObtained))
-        );
+        const fullMarks = data.result.reduce((total, item) => {
+          const fullMark =
+            item.paperId === "DRAWING"
+              ? 0
+              : Number(item.paperMarkTheory) + Number(item.paperMarkPractical);
 
-        let percentage = (marksObtained / fullMarks) * 100;
+          return total + fullMark;
+        }, 0);
+
+        data.result.map((item) => {
+          if (item.paperId === "DRAWING" || item.paperId === "ORAL") {
+            //do nothing
+          } else {
+            totalAllMarks += 100;
+          }
+        })
+
+
+
+        let marksObtained = data.result.reduce((total, item) => {
+          const obtainedMarkCalculated =
+            item.paperId === "DRAWING"
+              ? 0
+              : Number(item.paperMarkTheory) + Number(item.paperMarkPractical);
+
+          return total + obtainedMarkCalculated;
+        }, 0);
+
+
+        let percentage = (fullMarks / totalAllMarks) * 100;
 
         let calculatedRank = "N/A";
 
@@ -120,14 +145,11 @@ export const MarksheetReportGenerator = async (
           [
             { content: "Total", styles: { halign: "center" } },
             {
-              content: fullMarks.toString(),
+              content: `${fullMarks}/${totalAllMarks}`,
               colSpan: 2,
               styles: { halign: "center" },
             },
-            {
-              content: totalPassMarks.toString(),
-              styles: { halign: "center" },
-            },
+
             { content: marksObtained.toString(), styles: { halign: "center" } },
           ],
           [
@@ -139,7 +161,7 @@ export const MarksheetReportGenerator = async (
             },
           ],
           [
-            { content: "Rank" },
+            { content: "Class Rank" },
             {
               content: calculatedRank,
               colSpan: 4,
@@ -276,13 +298,13 @@ export const MarksheetReportGenerator = async (
 
         const classText = `Class - ${getClassNameByValue(
           data.student.class!
-        )} (${data.student.section})`;
+        )}`;
         doc.text(
           classText,
           (pageWidth - doc.getTextWidth(classText)) / 2,
           y + 62
         );
-        const sessionText = "Academic Session - 2024-25";
+        const sessionText = "Academic Session - 2025/26";
         doc.text(
           sessionText,
           (pageWidth - doc.getTextWidth(sessionText)) / 2,
@@ -351,12 +373,11 @@ export const MarksheetReportGenerator = async (
         wrapText(doc, text, wrapx, wrapy, maxWidth);
 
         //right side
-
         const rightXStart = cardWidth - 60;
         const rightXStartContent = cardWidth - 24;
 
         doc.text("Class", rightXStart, studentDetailsStartY);
-        const classText2 = `${getClassNameByValue(data.student.class!)}`;
+        const classText2 = `${getClassNameByValue(data.student.class!)}(${data.student.section})`;
         doc.text(": " + classText2, rightXStartContent, studentDetailsStartY);
 
         doc.text("Roll No", rightXStart, studentDetailsStartY + 15);
@@ -453,13 +474,13 @@ export const MarksheetReportGenerator = async (
         // doc.addImage(PRINCIPAL_SIGN, startX + 2 * (cardWidth / 3)-5, startY-22, 40, 15);
         doc.text("Principal Sign", startX + 2 * (cardWidth / 3), startY);
 
- 
+
         if (index === resultData.length - 1) {
           const blob = doc.output("blob");
           const url = URL.createObjectURL(blob);
           resolve(url);
-        }else{
-          
+        } else {
+
           doc.addPage();
         }
       });
