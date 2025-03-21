@@ -20,6 +20,7 @@ import AuthProvider from "./context/AuthContext";
 import Loadable from "./components/thirdparty/Loadable";
 import AdmitCard from "pages/Reports/AdmitCard";
 import ExamPlanner from "pages/ResultsManagement/ExamPlanner";
+import PdfLivePreview from "pages/PdfJsLiveEditor/PdfLivePreview";
 
 // Lazy Loaded Components
 
@@ -221,6 +222,11 @@ function App() {
                 path="update-student-profile-picture"
                 element={<StudentProfilePictureUpdater />}
               />
+              <Route
+                path="livePdfEditor"
+                element={<PdfLivePreview />}
+              />
+              
               <Route path="/login" element={<AuthenticationLayout />}>
                 <Route index element={<Login />} />
               </Route>

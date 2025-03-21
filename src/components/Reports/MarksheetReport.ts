@@ -3,6 +3,7 @@ import {
   POPPINS_BOLD,
   POPPINS_REGULAR,
   POPPINS_SEMIBOLD,
+  PRINCIPAL_SIGN,
 
 } from "utilities/Base64Url";
 import { SCHOOL_NAME } from "config/schoolConfig";
@@ -66,11 +67,35 @@ export const MarksheetReportGenerator = async (
             {
               content: data.examTitle,
               colSpan: 5,
+              fontStyle: "bold",
+              styles: { halign: "center", fillColor: [253, 218, 13], fontStyle: "bold", },
 
-              styles: { halign: "center" },
             },
           ],
-          ["Subject", "Theory (80)", "Pract.(20)", "Marks Obtained", "Grade"],
+          [
+            {
+              content: "Subject",
+              styles: { halign: "center", fillColor: [195, 240, 255] },
+            },
+            {
+              content: "Theory (80)",
+              styles: { halign: "center", fillColor: [195, 240, 255] },
+            },
+            {
+              content: "Pract.(20)",
+              styles: { halign: "center", fillColor: [195, 240, 255] },
+            },
+            {
+              content: "Marks Obtained",
+              styles: { halign: "center", fillColor: [195, 240, 255] },
+            },
+            {
+              content: "Grade",
+              styles: { halign: "center", fillColor: [195, 240, 255] },
+            },
+          ]
+          ,
+
         ];
 
 
@@ -174,39 +199,39 @@ export const MarksheetReportGenerator = async (
           ],
         ];
 
-        const getTextWidth = (text: string, doc: jsPDF): number => {
-          return doc.getStringUnitWidth(text) * doc.internal.scaleFactor;
-        };
+        // const getTextWidth = (text: string, doc: jsPDF): number => {
+        //   return doc.getStringUnitWidth(text) * doc.internal.scaleFactor;
+        // };
 
-        const wrapText = (
-          doc: jsPDF,
-          text: string,
-          wrapx: number,
-          wrapy: number,
-          maxWidth: number
-        ): void => {
-          const lines: string[] = [];
-          const words = text.split(" ");
-          let line = "";
+        // const wrapText = (
+        //   doc: jsPDF,
+        //   text: string,
+        //   wrapx: number,
+        //   wrapy: number,
+        //   maxWidth: number
+        // ): void => {
+        //   const lines: string[] = [];
+        //   const words = text.split(" ");
+        //   let line = "";
 
-          // Wrap text into lines
-          for (const word of words) {
-            const testLine = line ? `${line} ${word}` : word;
-            if (getTextWidth(testLine, doc) < maxWidth) {
-              line = testLine;
-            } else {
-              lines.push(line);
-              line = word;
-            }
-          }
-          if (line) {
-            lines.push(line);
-          }
+        //   // Wrap text into lines
+        //   for (const word of words) {
+        //     const testLine = line ? `${line} ${word}` : word;
+        //     if (getTextWidth(testLine, doc) < maxWidth) {
+        //       line = testLine;
+        //     } else {
+        //       lines.push(line);
+        //       line = word;
+        //     }
+        //   }
+        //   if (line) {
+        //     lines.push(line);
+        //   }
 
-          lines.forEach((line, index) => {
-            doc.text(line, wrapx + index * 2, wrapy + index * 5);
-          });
-        };
+        //   lines.forEach((line, index) => {
+        //     doc.text(line, wrapx + index * 2, wrapy + index * 5);
+        //   });
+        // };
 
         doc.setTextColor("#000");
 
@@ -221,18 +246,24 @@ export const MarksheetReportGenerator = async (
         doc.addFont("Poppins-Semibold", "Poppins", "semibold");
         ///Start of PDF Design
 
-        doc.addImage(LOGO_BASE_64, x + 8, y + 12, 25, 23);
-        doc.addImage(LOGO_BASE_64, cardWidth - 30, y + 12, 25, 23);
+        //left logo
+        // doc.addImage(LOGO_BASE_64, x + 8, y + 12, 25, 23);
 
-        const schoolHeaderStartX = x + 40;
+        //right logo
+        doc.addImage(LOGO_BASE_64, cardWidth - 25, y + 2, 27, 25);
+
+        const schoolHeaderStartX = x + 10;
         const schoolHeaderStartY = y + 10;
 
-        doc.setFontSize(26);
+        doc.setFontSize(27);
         doc.setFont("Poppins", "bold");
+        doc.setTextColor("#15497c");
+
         doc.text(
           SCHOOL_NAME.toUpperCase(),
-          (pageWidth - doc.getTextWidth(SCHOOL_NAME.toUpperCase())) / 2,
-          schoolHeaderStartY
+          schoolHeaderStartX,
+          schoolHeaderStartY,
+          { align: "left" }
         );
 
         doc.setFontSize(9);
@@ -240,50 +271,52 @@ export const MarksheetReportGenerator = async (
         const tagline = "An English Medium School Based on CBSE Curriculum";
         doc.text(
           tagline,
-          (pageWidth - doc.getTextWidth(tagline)) / 2,
-          schoolHeaderStartY + 5
+          schoolHeaderStartX,
+          schoolHeaderStartY + 5,
+          { align: "left" }
         );
 
         const schoolContactDetailStartY = schoolHeaderStartY + 5;
         doc.setFontSize(9);
         doc.setFont("Poppins", "normal");
-        const address = "Address: At-Golhaiya (Choura), Jamua";
+        const address = "Address: At-Golhaiya (Choura), Jamua, Giridih, Jharkhand – 815312";
         doc.text(
           address,
-          (pageWidth - doc.getTextWidth(address)) / 2,
-          schoolContactDetailStartY + 5
+          schoolHeaderStartX,
+          schoolContactDetailStartY + 5,
+          { align: "left" }
         );
-        const address2 = "Giridih, Jharkhand – 815312";
-        doc.text(
-          address2,
-          (pageWidth - doc.getTextWidth(address2)) / 2,
-          schoolContactDetailStartY + 9
-        );
-        const contact = "Phone:  +91-7070829020, +91-6204313113, +91-9661009250";
+        //  const address2 = "Giridih, Jharkhand – 815312";
+        //   doc.text(
+        //     address2,
+        //     (pageWidth - doc.getTextWidth(address2)) / 2,
+        //     schoolContactDetailStartY + 9
+        //   ); 
+        const contact = "Phone:  +91-6204313113, +91-7634932030,+91-6205447024 ";
         doc.text(
           contact,
-          (pageWidth - doc.getTextWidth(contact)) / 2,
-          schoolContactDetailStartY + 13
+          schoolHeaderStartX,
+          schoolContactDetailStartY + 9
         );
-        const contact2 = "+91-9939557894, +91-7634932030, +91-6205447024";
-        doc.text(
-          contact2,
-          (pageWidth - doc.getTextWidth(contact2)) / 2,
-          schoolContactDetailStartY + 17
-        );
+        // const contact2 = "+91-6205447024";
+        // doc.text(
+        //   contact2,
+        //   (pageWidth - doc.getTextWidth(contact2)) / 2,
+        //   schoolContactDetailStartY + 17
+        // );
         const websiteName = "www.apxschool.org";
         doc.text(
           websiteName,
-          (pageWidth - doc.getTextWidth(websiteName)) / 2,
-          schoolContactDetailStartY + 21
+          schoolHeaderStartX,
+          schoolContactDetailStartY + 13
         );
 
-        doc.setDrawColor("#4a6ccc");
-        doc.rect(schoolHeaderStartX + 20, y + 45, schoolHeaderStartX + 28, 10);
+        doc.setDrawColor("#ed0001");
+        doc.rect(x + 40 + 20, y + 45, schoolHeaderStartX + 60, 10);
 
         doc.setFont("Poppins", "bold");
         doc.setFontSize(16);
-        doc.setTextColor("#000");
+        doc.setTextColor("#ed0001");
 
         const progressReportText = "Progress Report Card";
 
@@ -304,7 +337,7 @@ export const MarksheetReportGenerator = async (
           (pageWidth - doc.getTextWidth(classText)) / 2,
           y + 62
         );
-        const sessionText = "Academic Session - 2025/26";
+        const sessionText = "Academic Session - 2024/25";
         doc.text(
           sessionText,
           (pageWidth - doc.getTextWidth(sessionText)) / 2,
@@ -314,7 +347,7 @@ export const MarksheetReportGenerator = async (
         //Marksheet Body
 
         //students details
-        doc.setFontSize(13);
+        doc.setFontSize(12);
         doc.setFont("Poppins", "normal");
         doc.setTextColor("#000");
 
@@ -324,53 +357,51 @@ export const MarksheetReportGenerator = async (
         const leftXStartContent = x + 55;
 
         doc.text("Name", leftXStart, studentDetailsStartY);
-
         doc.text(
           ": " + data.student.student_name,
           leftXStartContent,
           studentDetailsStartY
         );
 
-        doc.text("Student ID", leftXStart, studentDetailsStartY + 8);
+        doc.text("Student ID", leftXStart, studentDetailsStartY + 6);
         doc.text(
           ": " + data.student.admission_no,
           leftXStartContent,
-          studentDetailsStartY + 8
+          studentDetailsStartY + 6
         );
 
-        doc.text("Father's Name", leftXStart, studentDetailsStartY + 15);
+        doc.text("Father's Name", leftXStart, studentDetailsStartY + 12);
         doc.text(
           ": " + data.student.father_name,
           leftXStartContent,
-          studentDetailsStartY + 15
+          studentDetailsStartY + 12
         );
-
-        doc.text("Mother's Name", leftXStart, studentDetailsStartY + 22);
-
+        doc.text("Mother's Name", leftXStart, studentDetailsStartY + 18);
         doc.text(
           ": " + data.student.mother_name,
           leftXStartContent,
-          studentDetailsStartY + 22
+          studentDetailsStartY + 18
         );
-        doc.text("Date Of Birth", leftXStart, studentDetailsStartY + 29);
+
+        doc.text("Date Of Birth", leftXStart, studentDetailsStartY + 24);
         doc.text(
           ": " + data.student.dob,
           leftXStartContent,
-          studentDetailsStartY + 29
+          studentDetailsStartY + 24
         );
-        doc.text("Address", leftXStart, studentDetailsStartY + 36);
-        // doc.text(
-        //   ": #" + data.student.address,
-        //   leftXStartContent,
-        //   studentDetailsStartY + 36
-        // );
-        let text = ": " + data.student.address;
-        const wrapx = leftXStartContent;
-        const wrapy = studentDetailsStartY + 36;
-        const maxWidth = 90;
+        // doc.text("Address", leftXStart, studentDetailsStartY + 36);
+        // // doc.text(
+        // //   ": #" + data.student.address,
+        // //   leftXStartContent,
+        // //   studentDetailsStartY + 36
+        // // );
+        // let text = ": " + data.student.address;
+        // const wrapx = leftXStartContent;
+        // const wrapy = studentDetailsStartY + 36;
+        // const maxWidth = 90;
 
         // Call the wrapText function
-        wrapText(doc, text, wrapx, wrapy, maxWidth);
+        // wrapText(doc, text, wrapx, wrapy, maxWidth);
 
         //right side
         const rightXStart = cardWidth - 60;
@@ -380,31 +411,33 @@ export const MarksheetReportGenerator = async (
         const classText2 = `${getClassNameByValue(data.student.class!)}(${data.student.section})`;
         doc.text(": " + classText2, rightXStartContent, studentDetailsStartY);
 
-        doc.text("Roll No", rightXStart, studentDetailsStartY + 15);
+        doc.text("Admission No", rightXStart, studentDetailsStartY + 6);
+        doc.text(
+          ": " + data.student.admission_no.slice(-5),
+          rightXStartContent,
+          studentDetailsStartY + 6
+        );
+
+        doc.text("Roll No", rightXStart, studentDetailsStartY + 12);
 
         doc.text(
           ": " + data.student.class_roll,
           rightXStartContent,
-          studentDetailsStartY + 15
+          studentDetailsStartY + 12
         );
 
-        doc.text("Admission No", rightXStart, studentDetailsStartY + 8);
-        doc.text(
-          ": " + data.student.admission_no.slice(-5),
-          rightXStartContent,
-          studentDetailsStartY + 8
-        );
 
-        doc.text("Contact No", rightXStart, studentDetailsStartY + 22);
+
+        doc.text("Contact No", rightXStart, studentDetailsStartY + 18);
 
         doc.text(
           ": " + data.student.contact_number,
           rightXStartContent,
-          studentDetailsStartY + 22
+          studentDetailsStartY + 18
         );
 
         //Marks Body
-        let tableY = studentDetailsStartY + 50;
+        let tableY = studentDetailsStartY + 30;
         const combinedData = [...header2, ...resDataTable, ...rows2];
 
         doc.setFontSize(11);
@@ -427,53 +460,94 @@ export const MarksheetReportGenerator = async (
             cellWidth: 35,
             fillColor: "#fff",
             textColor: "#000",
-            minCellHeight: 6,
+            minCellHeight: 4,
             lineColor: "#000",
           },
+
         });
+
+
 
         //Result and Promotted Class
         let resultY = tableY + 10 + lineCount * 8;
+
+        // Define grade marks range (original vertical format)
+        const grades = ["A+", "A", "B+", "B", "C+", "C", "D", "F"];
+        const marks = ["91-100", "81-90", "71-80", "61-70", "51-60", "41-50", "33-40", "Below 33"];
+
+        // Transpose data to make it horizontal
+        const body = [["Grade", ...grades]]; // Header row
+        const head = [["Marks Range", ...marks]]; // Data row
+
+
+        autoTable(doc, {
+          head,
+          body,
+          startY: resultY,
+          margin: { left: doc.internal.pageSize.width - 130, right: 15 }, // Shift to right
+          theme: "grid",
+          styles: {
+            fontSize: 8, // Small font size
+            cellPadding: 2,
+            lineWidth: 0.1, // Border thickness
+            lineColor: "#808080", // Black border,
+            halign: "center"
+          },
+          headStyles: {
+            fillColor: [253, 218, 13],
+            textColor: "#000",
+            fontSize: 8,
+            fontStyle: "bold",
+            lineWidth: 0.1, // Border thickness
+            lineColor: "#808080", // Black border
+          },
+          bodyStyles: {
+            fontSize: 8,
+          },
+        });
+
+
         let resultPF = percentage > 33.0 ? "PASS" : "FAIL";
-        // let promotedClass =
-        //     percentage > 33.0
-        //         ? 1 + Number(data.student.class)
-        //         : Number(data.student.class);
-        doc.text("Result: " + resultPF, startX + 10, resultY + 5);
-        // doc.text(
-        //     "Promoted to Class: " + promotedClass,
-        //     startX + 10 + cardWidth / 2,
-        //     resultY + 5
-        // );
-        // console.log("promotedClass: " + promotedClass.toString());
 
+        doc.text("Passing Mark: " + (0.33 * totalAllMarks).toFixed(0), startX - 3, resultY + 5);
+        doc.text("Result: " + resultPF, startX - 3, resultY + 12);
+        // Set color for result text
+        if (resultPF === "PASS") {
+          doc.setTextColor(0, 128, 0); // Green color
+        } else {
+          doc.setTextColor(255, 0, 0); // Red color
+        }
+
+        doc.text("Result: " + resultPF, startX - 3, resultY + 12);
+        doc.setTextColor(0, 0, 0); // Reset to default (black)
         //Signatures
+        let pageHeight = doc.internal.pageSize.height; // Get total page height
 
-        let startY = tableY + lineCount * 6;
-        startY += 50 + 2 * data.result.length;
+        let marginSign = 10; // Define left and right margins
+        let usableWidth = pageWidth - 2 * marginSign; // Calculate usable width after margins
+
+        let signY = pageHeight - 13; // Position signatures 30 units from the bottom
+        let sectionWidth = usableWidth / 3; // Divide usable space into 3 equal sections
+        let lineOffset = 5; // Space above text for the signature lines
+
+        // Set line width and color
         doc.setLineWidth(0.3);
         doc.setDrawColor(0, 0, 0);
 
-        doc.line(startX - 3, startY - 5, startX + 35, startY - 5);
-        doc.text("Class Teacher's Sign", startX, startY);
-        doc.line(
-          startX - 3 + cardWidth / 3,
-          startY - 5,
-          startX + 35 + cardWidth / 3,
-          startY - 5
-        );
-        doc.text("Parents Sign", startX + cardWidth / 3, startY);
-        doc.line(
-          startX - 3 + 2 * (cardWidth / 3),
-          startY - 5,
-          startX + 35 + 2 * (cardWidth / 3),
-          startY - 5
-        );
+        // Class Teacher's Signature
+        doc.line(marginSign + sectionWidth * 0.5 - 25, signY - lineOffset, marginSign + sectionWidth * 0.5 + 25, signY - lineOffset);
+        doc.text("Class Teacher's Sign", marginSign + sectionWidth * 0.5 - 20, signY);
 
+        // Parent's Signature
+        doc.line(marginSign + sectionWidth * 1.5 - 25, signY - lineOffset, marginSign + sectionWidth * 1.5 + 25, signY - lineOffset);
+        doc.text("Parents Sign", marginSign + sectionWidth * 1.5 - 15, signY);
 
-        // doc.addImage(PRINCIPAL_SIGN, startX + 2 * (cardWidth / 3)-5, startY-22, 40, 15);
-        doc.text("Principal Sign", startX + 2 * (cardWidth / 3), startY);
+        // Principal's Signature
+        doc.line(marginSign + sectionWidth * 2.5 - 25, signY - lineOffset, marginSign + sectionWidth * 2.5 + 25, signY - lineOffset);
+        doc.text("Principal Sign", marginSign + sectionWidth * 2.5 - 15, signY);
 
+        // Uncomment to add Principal's digital signature
+        doc.addImage(PRINCIPAL_SIGN, marginSign + sectionWidth * 2.5 - 20, signY - 27, 40, 27);
 
         if (index === resultData.length - 1) {
           const blob = doc.output("blob");

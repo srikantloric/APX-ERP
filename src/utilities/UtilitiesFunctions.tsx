@@ -171,12 +171,12 @@ export function formatedDate(date: Date, format: string): string {
   const pad = (n: number) => n < 10 ? '0' + n : n.toString();
 
   const replacements: { [key: string]: string } = {
-      'dd': pad(date.getDate()),
-      'MM': pad(date.getMonth() + 1),
-      'YYYY': date.getFullYear().toString(),
-      'hh': pad(date.getHours()),
-      'mm': pad(date.getMinutes()),
-      'ss': pad(date.getSeconds())
+    'dd': pad(date.getDate()),
+    'MM': pad(date.getMonth() + 1),
+    'YYYY': date.getFullYear().toString(),
+    'hh': pad(date.getHours()),
+    'mm': pad(date.getMinutes()),
+    'ss': pad(date.getSeconds())
   };
   return format.replace(/dd|MM|YYYY|hh|mm|ss/g, match => replacements[match]);
 }
@@ -190,11 +190,11 @@ export function getOrdinal(number: number): string {
   const suffix = (n: number): string => {
     const lastDigit = n % 10;
     const lastTwoDigits = n % 100;
-    
+
     if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
       return 'th';
     }
-    
+
     switch (lastDigit) {
       case 1:
         return 'st';
@@ -214,7 +214,7 @@ export function getOrdinal(number: number): string {
 
 export const GetGradeFromMark = (obtainedMark: string | number): string => {
   if (typeof obtainedMark === "string") {
-    const validGrades = ["A+", "A", "B+", "B", "C+", "C", "D"];
+    const validGrades = ["A+", "A", "B+", "B", "C+", "C", "D","F"];
     if (validGrades.includes(obtainedMark)) {
       return obtainedMark; // Return the grade if it's already valid
     }
@@ -225,13 +225,14 @@ export const GetGradeFromMark = (obtainedMark: string | number): string => {
     throw new Error("Invalid mark. Must be a number between 0 and 100.");
   }
 
-  if (mark >= 90) return "A+";
-  if (mark >= 80) return "A";
-  if (mark >= 70) return "B+";
-  if (mark >= 60) return "B";
-  if (mark >= 50) return "C+";
-  if (mark >= 40) return "C";
+  if (mark >= 91) return "A+";
+  if (mark >= 81) return "A";
+  if (mark >= 71) return "B+";
+  if (mark >= 61) return "B";
+  if (mark >= 51) return "C+";
+  if (mark >= 41) return "C";
   if (mark >= 33) return "D";
+  if (mark < 33) return "F";
 
   return "F"; // Failing grade if below 33
 };
